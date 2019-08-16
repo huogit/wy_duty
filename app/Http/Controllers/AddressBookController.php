@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Address_book;
+use App\addressBook;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class Address_bookController extends Controller
+class AddressBookController extends Controller
 {
 	/**
      * 通讯录列表
@@ -15,10 +15,10 @@ class Address_bookController extends Controller
      */
     public function list()
     {
-        $address_books = Address_book::select('id','class','real_name','phone')->orderBy('class','desc')->orderBy('department');
-        $count = $address_books->count();
-        $address_books = $address_books->get();
-        $data = compact('count','address_books');
+        $addressBooks = addressBook::select('id','class','real_name','phone')->orderBy('class','desc')->orderBy('department');
+        $count = $addressBooks->count();
+        $addressBooks = $addressBooks->get();
+        $data = compact('count','addressBooks');
 
         return $this->response(200,'ok',$data);
     }
@@ -33,7 +33,7 @@ class Address_bookController extends Controller
         $search_word = request('search_word');
         $search_word = '%'.$search_word.'%';
 
-        $result_list = Address_book::where('real_name','like',$search_word)
+        $result_list = addressBook::where('real_name','like',$search_word)
             ->orWhere('phone','like',$search_word)
             ->select('id','class','real_name','phone')
             ->orderBy('class','desc')
@@ -51,15 +51,15 @@ class Address_bookController extends Controller
      * @param Request $request
      * @return string
      */
-    public function address_book(Request $request)
+    public function addressBook(Request $request)
     {
         $request->validate([
-           'id' => 'required|exists:address_book,id'
+           'id' => 'required|exists:addressBook,id'
         ]);
 
         $id = request('id');
 
-        $address = Address_book::where('id',$id)
+        $address = addressBook::where('id',$id)
             ->select('head_url','username','real_name','department','class','major','phone','wechat_id','email')
             ->first()->toArray();
 

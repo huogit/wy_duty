@@ -19,7 +19,6 @@ class Controller extends BaseController
         ],
     ];
 
-    // 接口返回
     public function response($code,$message,$data=null)
     {
         if (is_null($data))
@@ -64,6 +63,12 @@ class Controller extends BaseController
         $week--;
         $day--;
         return date('Y-m-d',strtotime(env('SCHOOL_BEGIN_DATE')." + {$week}week {$day}day"));
+    }
+
+    public function duty_dateTime($week,$day,$time)
+    {
+        $str = $time == 0 ? ' 14:40:00' : ' 16:30';
+        return $this->duty_date($week,$day).$str;
     }
 
     // 随机颜色 // TODO：改成从一些能用的颜色中选择
@@ -197,6 +202,30 @@ class Controller extends BaseController
         $url = "https://wx-api.wangyuan.info/api/sendTplMessage/{$openid}/{$tplId}";
         $result = $this->http_post($url, $postData);
         return $this->response(200,'ok',$result);
+    }
+
+    /**
+     * 当前时间是否超过传入参数转换的时间
+     *
+     * @param $week
+     * @param $day
+     * @param $time
+     * @return bool
+     */
+    public function isPastDue($week,$day,$time)
+    {
+        if ($this->duty_date($week, $day) < date('Y-m-d')) // 值班日期 < 当前日期
+        {
+            return true;
+        } elseif ($this->duty_date($week, $day) == date('Y-m-d')) {
+            $His = date('H:i:s');
+            if ($time == 0 && $His > '16:25')
+                return true;
+            if ($time == 1 && $His > '18:05')
+                return true;
+        }
+
+        return false;
     }
 
 }

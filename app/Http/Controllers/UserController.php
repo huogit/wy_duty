@@ -49,7 +49,7 @@ class UserController extends Controller
     }
    
     /**
-    * 检查token是否过期（不知道前端用来干嘛）
+    * 检查token是否过期
      *
     * @return string
     */

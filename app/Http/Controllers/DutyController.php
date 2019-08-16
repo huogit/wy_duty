@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Duty_record;
-use App\Duty_table;
-use App\Complement;
+use App\Duty;
 use App\Leave;
 
 
@@ -23,22 +22,16 @@ class DutyController extends Controller
         $day = $this->nowDay();
         $time = $this->nowTime();
 
-        $openid = (request('jwt_user'))->openid;
-
-        $duty = Duty_table
-            ::where('openid',$openid)->where('week',$week)->where('day', $day)->where('time', $time)
-            ->doesntHave('duty_record');//->doesntHave('leaves');
+        $id = (request('jwt_user'))->id;
 
         // 要值班
-        if ($duty->count() == 1)
+        $duty = Duty::whereWdtp(compact('week','day','time'))->where('user_id',$id)->where('sign_time',null);
+        if ($duty->count())
             return $this->response(200,'ok',['needToDuty' => true]);
 
-        $complement = Complement
-            ::where('openid',$openid)->where('week',$week)->where('day',$day)->where('time',$time)->where('duty_status',0)
-            ->doesntHave('duty_record');
-
         // 要补班
-        if ($complement->count() == 1)
+        $leave = Leave::whereWdtp(compact('week','day','time'))->where('user_id',$id)->where('sign_time',null);
+        if ($leave->count())
             return $this->response(200,'ok',['needToDuty' => true]);
 
         // 都不用
@@ -55,61 +48,26 @@ class DutyController extends Controller
         $week = $this->nowWeek();
         $day = $this->nowDay();
         $time = $this->nowTime();
-        $openid = (request('jwt_user'))->openid;
+        $id = (request('jwt_user'))->id;
 
-        $duty = Duty_table::where('openid', $openid)->where('week',$week)->where('day', $day)->where('time', $time);
-        $complement = Complement::where('openid',$openid)->where('week',$week)->where('day',$day)->where('time',$time)->where('duty_status',0);
-
-        // 需要值班
-        if ($duty->count() == 1)
+        // 值班
+        $duty = Duty::whereWdtp(compact('week','day','time'))->where('user_id',$id)->where('sign_time',null);
+        if ($duty->count())
         {
             $duty = $duty->first();
-            $record = $duty->duty_record()->where('type', 0)->where('created_at', '>', date('Y-m-d'));
-
-            // 没有签到记录，可签到
-            if ($record->count() == 0)
-            {
-                // 添加签到记录
-                $record = new Duty_record();
-                $record->foreign_id = $duty->id;
-                $record->type = 0;
-                $record->openid = $openid;
-                $record->save();
-
-                // 值班次数 +1
-                DB::table('users')->where('openid',$openid)->increment('duty_count');
-            }
+            $duty->update(['sign_time'=>date('Y-m-d H:i:s')]);
+            User::where('id',$id)->increment('duty_count');
             return $this->response(200, '已签到成功');
         }
-        // 需要补班
-        elseif ($complement->count() == 1)
-        {
-            $complement = $complement->first();
-            $record = $complement->duty_record()->where('type', 1)->where('created_at', '>', date('Y-m-d'));
 
-            // 没有签到记录，可签到
-            if ($record->count() == 0)
-            {
-                // 添加签到记录
-                $record = new Duty_record();
-                $record->foreign_id = $complement->id;
-                $record->type = 1;
-                $record->openid = $openid;
-                $record->save();
-
-                // 更新 补班,请假 状态
-                $complement->update(['duty_status' => 1]);
-                Leave::where('duty_id',$complement->duty_id)->where('duty_status',0)->update(['duty_status'=>1]);
-
-                // 值班次数 +1, 补班次数 +1
-                $user = DB::table('users')->where('openid',$openid);
-                $user->increment('duty_count');
-                $user->increment('complements_count');
-            }
+        // 补班
+        $leave = Leave::whereWdtp(compact('week','day','time'))->where('user_id',$id)->where('sign_time',null);
+        if ($leave->count()) {
+            $leave = $leave->first();
+            $leave->update(['sign_time'=>date('Y-m-d H:i:s')]);
+            User::where('id',$id)->increment('complements_count');
             return $this->response(200, '已签到成功');
         }
-        else
-            return $this->response(200, '已签到成功');
 
     }
 
@@ -136,25 +94,22 @@ class DutyController extends Controller
     public function count(Request $request)
     {
         $request->validate([
-            'week' => 'required|max:20|min:1',
-            'day' => 'required|max:5|min:1',
-            'place' =>  'required|boolean',
-            'time' =>  'required|max:1|boolean'
+            'week' => 'required|integer|between:1,17',
+            'day' => 'required|between:1,5',
+            'place' =>  'required|in:0,1',
+            'time' =>  'required|in:0,1'
         ]);
 
-        $week = request('week');
-        $day = request('day');
-        $place = request('place');
-        $time = request('time');
+        $params = request(['week','day','time','place']);
 
-        $dutys = Duty_table::where('week',$week)->where('day',$day)->where('place',$place)->where('time',$time);
-        $complements = Complement::where('week',$week)->where('day',$day)->where('place',$place)->where('time',$time);
-        $leaves = Leave::whereHas('duty_table', function ($query) {
-            $query->where('week', request('week'))->where('day', request('day'))->where('place', request('place'))->where('time', request('time'));
+        $duty = Duty::whereWdtp($params);
+        $complements = Leave::whereWdtp($params);
+        $leaves = Leave::whereHas('duty', function ($query) use ($params) {
+            $query->where('week', $params['week'])->where('day', $params['day'])->where('place', $params['place'])->where('time', $params['time']);
         });
 
         // 值班总人数 = 值班 + 补班
-        $duty_count = $dutys->count() + $complements->count();
+        $duty_count = $duty->count() + $complements->count();
 
         // 请假人数
         $leave_count = $leaves->count();
@@ -171,56 +126,49 @@ class DutyController extends Controller
     public function leave(Request $request)
     {
         $request->validate([
-            'week' => 'required|max:20|min:1',
-            'day' => 'required|max:5|min:1',
-            'place' =>  'required|boolean',
-            'time' =>  'required|boolean',
+            'week' => 'required|integer|between:1,17',
+            'day' => 'required|between:1,5',
+            'time' => 'required|in:0,1',
+            'place' =>  'required|in:0,1',
             'reason' => 'required|max:255',
         ]);
 
-        $openid = (request('jwt_user'))->openid;
+        $user_id = (request('jwt_user'))->id;
         $week = request('week');
         $day = request('day');
-        $place = request('place');
         $time = request('time');
         $reason = request('reason');
 
+        $params = request(['week','day','time','place']);
+
         // 不需要值班，无法请假
-        $duty = Duty_table::where('openid',$openid)->where('week',$week)->where('place',$place)->where('day',$day)->where('time',$time);
+        $duty = Duty::whereWdtp($params)->where('user_id',$user_id);
         if ($duty->count() == 0)
             return $this->response(204,'该班次你不需要值班，无法请假');
         else
             $duty_id = $duty->first()->id;
 
         // 值班时间已过，无法请假
-        if ($this->duty_date($week,$day) < date('Y-m-d')) // 值班日期 < 当前日期
+
+        if ($this->isPastDue($week,$day,$time)) // 值班日期 < 当前日期
         {
             return $this->response(200,'值班时间已过，无法请假');
         }
-        elseif($this->duty_date($week,$day) == date('Y-m-d'))
-        {
-            $His = date('H:i:s'); // 当前时间
-            if ($time == 0 && $His > '16:25')
-                return $this->response(200,'值班时间已过，无法请假');
-            elseif($time == 1 && $His > '18:05')
-                return $this->response(200,'值班时间已过，无法请假');
-        }
 
-        // 已请假
-        $leave = Leave::where('openid',$openid)->where('duty_id',$duty_id)->where('duty_status',0);
+        // 已请假，无法请假
+        $leave = Leave::where('user_id',$user_id)->where('duty_id',$duty_id);
         if ($leave->count() == 1)
             return $this->response(409, '已请假，请不要重复操作');
 
         // 添加请假记录
-        $type = 0;
-        $params = compact('duty_id','openid','type','reason');
+        $params = compact('duty_id','user_id','type','reason');
         if(Leave::create($params)) {
             // 请假次数 + 1
-            DB::update('update users set leaves_count = leaves_count + 1 where openid =?', [$openid]);
+            User::where('id',$user_id)->increment('leaves_count');
 
             // 发送审核提醒
             $tplMask = '审核提醒';
-            $user = DB::table('users')->where('openid',$openid)->first();
+            $user = User::find($user_id);
             $real_name = $user->real_name;
             $wechat_openid = $user->wechat_openid;
             $data = [
@@ -245,12 +193,10 @@ class DutyController extends Controller
                     "color" => "#173177"
                 ],
             ];
-            $data = $this->sendTplMessage($wechat_openid,$tplMask,$data,'index');
+            $this->sendTplMessage($wechat_openid,$tplMask,$data,'index');
 
             return $this->response(201, '申请请假成功');
         }
-
-
     }
 
     /**
@@ -261,70 +207,61 @@ class DutyController extends Controller
      */
     public function complement(Request $request)
     {
-        # 验证
-        $request->validate([
-            'week' => 'required|max:20|min:1',
-            'day' => 'required|max:5|min:1',
-            'place' =>  'required|boolean',
-            'time' =>  'required|boolean',
-        ]);
+          $request->validate([
+              'week' => 'required|integer|between:1,17',
+              'day' => 'required|between:1,5',
+              'time' => 'required|in:0,1',
+              'place' =>  'required|in:0,1',
+              'reason' => 'required|max:255',
+          ]);
 
-        # 获取参数
-        $openid = (request('jwt_user'))->openid;
-        $week = request('week');
-        $day = request('day');
-        $time = request('time');
-        $place = request('place');
+        $user_id = (request('jwt_user'))->id;
+        $params = request(['week','day','time','place']);
 
-        # 查看是否需要补班
-        $leaves = Leave::where('openid',$openid)->where('duty_status',0)->where('audit_status',1);
+        // 没有请假 或者 文秘小姐姐没有审核 或者 文秘小姐姐审核不通过
+        $leaves = Leave::where('user_id',$user_id)->where('sign_time',null)->where('audit_status',1);
         if ($leaves->count() == 0)
             return $this->response(403, '没有请假或者文秘小姐姐审核不通过，无法申请补班');
-        else
-        {
-            $leave  = $leaves->first();
-            $leave_id = $leave->id;
-            $duty_id = $leave->duty_id;
-        }
 
-
-        # 获取值班和补班记录
-        $duty = Duty_table::where('openid',$openid)->where('week',$week)->where('day',$day)->where('time',$time);
-        $complement = Complement::where('openid',$openid)->where('week',$week)->where('day',$day)->where('time',$time);
-
-        if($duty->count() == 1) // 与值班时间冲突
+        // 申请时间与值班时间冲突
+        $leave  = $leaves->first();
+        $duty = Duty::whereWdtp($params)->where('user_id',$user_id);
+        $complement = Leave::whereWdtp($params)->where('user_id',$user_id);
+        if($duty->count() == 1)
             return $this->response(409, '与值班时间冲突，无法申请补班');
 
-        if($complement->count() == 0) // 没有申请过，创建申请记录
-        {
-            $params = compact('openid', 'week', 'day', 'time', 'place', 'duty_id', 'leave_id');
-            Complement::create($params);
-        }
+        // 补班已存在
+        if($complement->count() == 1)
+            return $this->response(409, '补班已存在，请不要重复操作');
 
-        return $this->response(201, 'created，申请补班成功');
+        // 添加补班信息
+        $leave->update($params);
+        User::find($user_id)->increment('complements_count');
+        return $this->response(201, '申请补班成功');
     }
 
     /**
      * 我的申请
+     * 
      * @return string
      */
     public function my_apply()
     {
-        $openid = (request('jwt_user'))->openid;
+        $user_id = (request('jwt_user'))->id;
 
-        $complements = Complement::where('openid',$openid)
-            ->select('id','openid','week','day','place','time','auditor_id','audit_status','created_at')
+        $complements = leave::where('user_id',$user_id)
+            ->select('id','user_id','week','day','place','time','auditor_id','audit_status','created_at')
             ->selectRaw('0 as type')
-            ->with('auditor:openid,real_name')
-            ->with('user:openid,real_name')
+            ->with('auditor:id,real_name')
+            ->with('user:id,real_name')
             ->get();
 
-        $leaves = Leave::where('openid',$openid)->where('type',0) // 0请假 1未值班
-            ->select('id','openid','auditor_id','auditor_id','audit_status','created_at','duty_id','reason')
+        $leaves = Leave::where('user_id',$user_id)
+            ->select('id','user_id','auditor_id','auditor_id','audit_status','created_at','duty_id','reason')
             ->selectRaw('1 as type')
-            ->with('duty_table:id,week,day,place,time')
-            ->with('auditor:openid,real_name')
-            ->with('user:openid,real_name')
+            ->with('duty:id,week,day,place,time')
+            ->with('auditor:id,real_name')
+            ->with('user:id,real_name')
             ->get();
 
         if (count($complements) == 0 && count($leaves) == 0)
@@ -332,12 +269,12 @@ class DutyController extends Controller
 
         foreach ($leaves as $leave)
         {
-            $leave->week = $leave->duty_table['week'];
-            $leave->day = $leave->duty_table['day'];
-            $leave->place = $leave->duty_table['place'];
-            $leave->time = $leave->duty_table['time'];
+            $leave->week = $leave->duty['week'];
+            $leave->day = $leave->duty['day'];
+            $leave->place = $leave->duty['place'];
+            $leave->time = $leave->duty['time'];
 
-            unset($leave->duty_table);
+            unset($leave->duty);
         }
 
         $data = array_merge($leaves->toArray(),$complements->toArray());
@@ -358,61 +295,47 @@ class DutyController extends Controller
     {
         $request->validate([
             'id' => 'required',
-            'type' =>  'required|boolean'
+            'type' =>  'required|in:0,1'
         ]);
 
         $id = request('id'); // 假条、补班条id
         $type = request('type');
-        $openid = (request('jwt_user'))->openid;
+        $user_id = (request('jwt_user'))->id;
 
         // 取消请假
         if ($type == 0)
         {
-            $leave = Leave::where('openid',$openid)->where('id',$id)->first();
-            $duty = $leave->duty_table;
+            $leave = Leave::where('user_id',$user_id)->where('id',$id)->first();
+            $duty = $leave->duty;
 
             // 值班时间已过,无法取消
-            if ($this->duty_date($duty->week,$duty->day) < date('Y-m-d')) // 值班日期 < 当前日期
-            {
+            if ($this->isPastDue($duty->week,$duty->day,$duty->time))
                 return $this->response(403,'值班时间已过，无法取消请假申请');
-            }
-            elseif($this->duty_date($duty->week,$duty->day) == date('Y-m-d'))
-            {
-                $His = date('H:i:s');
-                if ($duty->time == 0 && $His > '16:25')
-                    return $this->response(403,'值班时间已过，无法取消请假申请');
-                if($duty->time == 1 && $His > '18:05')
-                    return $this->response(403,'值班时间已过，无法取消请假申请');
-            }
-            else
-            {
-                if ($leave->delete()) {
-                    DB::table('users')->where('openid', $openid)->decrement('leaves_count');
-                    return $this->response(200, '取消成功');
-                }
-            }
 
+            // 删除请假申请
+            if ($leave->delete()) {
+                $user = User::find($user_id);
+                if (!empty($leave->week))
+                    $user->decrement('complements_count');
+                $user->decrement('leaves_count');
+                return $this->response(200, '取消成功');
+            }
         }
-        // 取消补班
-        else
-        {
-            DB::table('users')->where('openid',$openid)->decrement('complements_count');
-            $complement = Complement::where('openid',$openid)->where('id',$id)
-                ->whereHas('duty_table',function ($query){                               // 查询未过值班时间的请假
-                    $time = $this->nowTime() == -1 ? 0 : $this->nowTime();
-                    $nowDateTime = $this->nowWeek().$this->nowDay().$time;
-                    $query->whereRaw('CONCAT(week,day,time) >= '.$nowDateTime);
-                });
 
-            // 补班时间未过，可以取消
-            if ($complement->count() == 1)
-            {
-                DB::table('users')->where('openid',$openid)->decrement('complements_count');
-                $complement->delete();
-                return $this->response(200,'取消成功');
-            }
-            else
-                return $this->response(403,'值班时间已过，无法取消请假申请');
+        // 取消补班
+        if ($type == 1)
+        {
+            $complement = Leave::where('user_id',$user_id)->where('id',$id)->where('sign_time',null)->first();
+
+            // 补班时间已过，无法取消
+            if($this->isPastDue($complement->week,$complement->day,$complement->time))
+                $this->response(403,'值班时间已过，无法取消请假申请');
+
+            // 删除补班
+            $complement->update(['week'=>null,'day'=>null,'time'=>null,'place'=>null]);
+            User::find($user_id)->decrement('complements_count');
+
+            return $this->response(200,'取消成功');
         }
     }
 
@@ -425,44 +348,37 @@ class DutyController extends Controller
     public function audit(Request $request)
     {
         $request->validate([
-            'type' =>  'required|boolean'
+            'type' =>  'required|in:0,1'
         ]);
 
         $type = request('type');
 
-        $data = array();
+        $condition = $type == 0 ? '=' : '!=';
+        $data = [];
+        $leaves = Leave::where('audit_status',$condition,0)->get();
+        $complements = Leave::where('complement_audit_status',$condition,0)->get();
+        $noSigns = Duty::where('sign_time',null)->where('audit_status',$condition,0)->get();
 
-        # 获取模型
-        $complements = Complement::where('audit_status',$type)->get();
-        $leaves = Leave::where('audit_status',$type)->where('type',0)->get();
-
-        # 没有内容
-        if (count($complements) == 0 && count($leaves) == 0)
-            return $this->response(204,'No Content');
-
-        # 处理一下格式
-        if (count($leaves) > 0) 
+        // 处理一下格式
+        if (count($leaves) > 0)
         {
-            foreach ($leaves as $leave) 
+            foreach ($leaves as $leave)
             {
                 $arr = [
                     'id' => $leave->id,
                     'real_name' => $leave->user->real_name,
-                    'week' => $leave->duty_table['week'],
-                    'day' => $leave->duty_table['day'],
-                    'place' => $leave->duty_table['place'],
-                    'time' => $leave->duty_table['time'],
+                    'week' => $leave->duty['week'],
+                    'day' => $leave->duty['day'],
+                    'place' => $leave->duty['place'],
+                    'time' => $leave->duty['time'],
                     'reason' => $leave->reason,
                     'created_at' => $leave->created_at,
                     'audit_time' => $leave->audit_time,
                     'audit_status' => $leave->audit_status,
+                    'type' => 0
                 ];
-
-                if ($leave->audit_status != 0) 
+                if ($leave->audit_status != 0)
                     $arr = array_merge($arr,['auditor_name' => $leave->auditor->real_name]);
-
-                $type = $leave->type == 0 ? 0:2;
-                $arr = array_merge($arr,['type' => $type]);
 
                 array_push($data, $arr);
             }
@@ -470,7 +386,7 @@ class DutyController extends Controller
 
         if (count($complements) > 0)
         {
-            foreach ($complements as $complement) 
+            foreach ($complements as $complement)
             {
                 $arr = [
                     'id' => $complement->id,
@@ -480,14 +396,41 @@ class DutyController extends Controller
                     'place' => $complement->place,
                     'time' => $complement->time,
                     'reason' => null,
-                    'created_at' => $complement->created_at,
-                    'audit_time' => $complement->audit_time,
-                    'audit_status' => $complement->audit_status,
+                    'created_at' => $complement->complement_created_at,
+                    'audit_time' => $complement->complement_audit_time,
+                    'audit_status' => $complement->complement_audit_status,
+                    'auditor_name' => $complement->complement_auditor->real_name,
                     'type' => 1
                 ];
 
-                if ($complement->audit_status != 0) 
-                    $arr = array_merge($arr,['auditor_name' => $complement->auditor->real_name]);
+                if ($complement->complement_audit_status != 0)
+                    $arr = array_merge($arr,['auditor_name' => $complement->complement_auditor->real_name]);
+
+                array_push($data, $arr);
+            }
+        }
+
+        if (count($noSigns) > 0)
+        {
+            foreach ($noSigns as $noSign)
+            {
+                if (!$this->isPastDue($noSign->week,$noSign->day,$noSign->time)) // 超过值班日期时间的才是未签到
+                    continue;
+                $arr = [
+                    'id' => $noSign->id,
+                    'real_name' => $noSign->user->real_name,
+                    'week' => $noSign->week,
+                    'day' => $noSign->day,
+                    'place' => $noSign->place,
+                    'time' => $noSign->time,
+                    'reason' => null,
+                    'created_at' => $this->duty_dateTime($noSign->week,$noSign->day,$noSign->time),
+                    'audit_time' => $noSign->audit_time,
+                    'audit_status' => $noSign->audit_status,
+                    'type' => 2
+                ];
+                if ($noSign->audit_status != 0)
+                    $arr = array_merge($arr,['auditor_name' => $noSign->auditor->real_name]);
 
                 array_push($data, $arr);
             }
@@ -497,7 +440,7 @@ class DutyController extends Controller
         $data = array_values($data); // 去掉键名
 
         return $this->response(200,'ok',$data);
-    }
+   }
 
     /**
      * 审核操作
@@ -509,43 +452,37 @@ class DutyController extends Controller
     {
         $request->validate([
             'id' => 'required',
-            'type' =>  'required|max:2|min:0',
-            'dispose' => 'required|max:3|min:1',
+            'type' =>  'required|in:0,1,2',
+            'dispose' => 'required|in:0,1,2,3',
         ]);
         
         $id = request('id');
         $type = request('type');
         $audit_status = request('dispose');
         $audit_time = date('Y-m-d H:i:s');
-        $auditor_id =  (request('jwt_user'))->openid;;
+        $auditor_id =  (request('jwt_user'))->id;;
 
         switch ($type)
         {
             // 请假
             case 0:
-            // 未签到
-            case 2:
                 $leave = Leave::find($id);
                 $leave->update(compact('auditor_id','audit_status','audit_time'));
                 break;
             // 补班
             case 1:
-                $complement = Complement::find($id);
-                $complement->update(compact('auditor_id','audit_status','audit_time'));
+                $complement = Leave::find($id);
+                $complement->update(compact('complement_auditor_id','complement_audit_status','complement_audit_time'));
+                break;
+            // 未签到
+            case 2:
+                $duty = Duty::find($id);
+                $duty->update(compact('auditor_id','audit_status','audit_time'));
                 break;
         }
 
         return $this->response(200,'ok');
     }
-
-
-
-
-
-
-
-
-
 
     /**
      * 当天值班表
@@ -562,34 +499,10 @@ class DutyController extends Controller
 
         $week = request('week');
         $day = request('day');
-        $His = date('H:i:s'); // 当前时间
         $data = array();
 
-        # 当天“默认要值班”的人
-        $dutys = Duty_table::where('week',$week)->where('day',$day)->get();
-
-        # 当天“要补班”的人
-        $complements = Complement::where('week',$week)->where('day',$day)->get();
-
-        # 当天“已签到”的人
-        $records = Duty_record
-            ::whereHas('duty_table',function ($query){
-                $query->where('week',request('week'))->where('day',request('day'));
-            })
-            ->orWhereHas('complement',function ($query){
-                $query->where('week',request('week'))->where('day',request('day'));
-            })
-            ->get();
-
-        # 当天“请假”的人
-        $leaves = Leave
-            ::where('audit_status',1)
-            ->whereHas('duty_table',function ($query){
-                $query->where('week',request('week'))->where('day',request('day'));
-            })->get();
-
-
-        // 添加签到状态 （多捞啊 我的代码）
+        $dutys = Duty::where('week',$week)->where('day',$day)->get();
+        $complements = Leave::where('week',$week)->where('day',$day)->get();
 
         // 值班
         foreach ($dutys as $duty)
@@ -597,36 +510,15 @@ class DutyController extends Controller
             $place = $duty->place;
             $time = $duty->time;
             $real_name = $duty->user->real_name;
-            $status = 0;   // 签到状态，默认待签到
+            $status = 0;
 
-            // 时间已过，未签到
-            if ($this->duty_date($duty->week,$duty->day) < date('Y-m-d')) // 值班日期 < 当前日期
-            {
+            if ($duty->sign_time != null){ // 已签到
+                $status = 1;
+            }elseif($duty->leave != null){ // 已请假
+                $status = 2;
+            }elseif($this->isPastDue($week,$day,$duty->time) && $duty->sign_time == null) { // 未签到
                 $status = 3;
             }
-            elseif($this->duty_date($duty->week,$duty->day) == date('Y-m-d'))
-            {
-                if ($duty->time == 0 && $His > '16:25')
-                    $status = 3;
-                if($duty->time == 1 && $His > '18:05')
-                    $status = 3;
-            }
-
-            // 有签到记录，已签到
-            foreach ($records as $record)
-                if ($record->type == 0 && $duty->id == $record->foreign_id)
-                {
-                    $status = 1;
-                    break;
-                }
-
-            // 有请假记录，已请假
-            foreach ($leaves as $leave)
-                if ($leave->type == 0 && $duty->id == $leave->duty_id)
-                {
-                    $status = 2;
-                    break;
-                }
 
             array_push($data,compact('real_name','place','time','status'));
         }
@@ -637,28 +529,13 @@ class DutyController extends Controller
             $place = $complement->place;
             $time = $complement->time;
             $real_name = $complement->user->real_name;
-            $status = 0;   // 签到状态，默认待签到
+            $status = 0;
 
-            // 时间已过，未签到
-            if ($this->duty_date($complement->week,$complement->day) < date('Y-m-d')) // 值班日期 < 当前日期
-            {
+            if ($complement->sign_time != null) { // 已签到
+                $status = 1;
+            }elseif($this->isPastDue($week,$day,$duty->time) && $duty->sign_time == null) { // 未签到
                 $status = 3;
             }
-            elseif($this->duty_date($complement->week,$complement->day) == date('Y-m-d'))
-            {
-                if ($complement->time == 0 && $His > '16:25')
-                    $status = 3;
-                if($complement->time == 1 && $His > '18:05')
-                    $status = 3;
-            }
-
-            // 有签到记录，已签到
-            foreach ($records as $record)
-                if ($record->type == 1 && $complement->id == $record->foreign_id)
-                {
-                    $status = 1;
-                    break;
-                }
 
             array_push($data,compact('real_name','place','time','status'));
         }

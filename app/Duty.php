@@ -4,16 +4,12 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Leave extends Model
+class Duty extends Model
 {
     public $timestamps = false;
-    protected $table = 'leaves';
-    protected $guarded = [];
+    protected $table = "duty";
 
-    public function duty()
-    {
-        return $this->belongsTo('App\Duty','duty_id','id');
-    }
+    protected $guarded = [];
 
     public function user()
     {
@@ -25,18 +21,17 @@ class Leave extends Model
         return $this->belongsTo('App\User','auditor_id','id');
     }
 
-    public function complement_auditor()
+    public function leave()
     {
-        return $this->belongsTo('App\User','complement_auditor_id','id');
+        return $this->hasOne('App\Leave','duty_id','id');
     }
 
     public static function whereWdtp($params)
     {
-        $duty = self::where('week',$params['week'])->where('day', $params['day'])->where('time', $params['time']);
+        $duty = self::where('week',$params['week'])->where('day', $params['day'])->where('time', $params['time'])->where('status',1);
         if (isset($params['place']))
             $duty = $duty->where('place',$params['place']);
 
         return $duty;
     }
-  
 }

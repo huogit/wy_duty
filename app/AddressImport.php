@@ -19,7 +19,7 @@ class AddressImport implements ToModel, WithHeadingRow, SkipsOnError
   /**
    * @param array $row
    *
-   * @return Address_book(
+   * @return addressBook(
    */
   public function model(array $row)
   {
@@ -28,7 +28,7 @@ class AddressImport implements ToModel, WithHeadingRow, SkipsOnError
           return null;
 
         // 去掉重复导入的(标识：通讯录表一般没有openid,因为老成员是没有openid的，所以手机号作为标识)
-        $address  = DB::table('address_book')->where('phone',$row['phone']);
+        $address  = DB::table('addressBook')->where('phone',$row['phone']);
         // 手机号已存在，pass
         if ($address->count() ==  1)
           return null;
@@ -41,7 +41,7 @@ class AddressImport implements ToModel, WithHeadingRow, SkipsOnError
           case '编程部':$row['department'] = 3;break;
         }
 
-        return new Address_book([
+        return new addressBook([
            'user_id'   => $row['openid'],
            'real_name' => $row['real_name'],
            'department' => $row['department'],

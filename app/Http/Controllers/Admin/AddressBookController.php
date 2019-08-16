@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Address_book;
+use App\addressBook;
 use GuzzleHttp\Psr7\Request;
 use Maatwebsite\Excel\Validators\Failure;
 use App\AddressImport;
 
 
-class Address_bookController extends \App\Http\Controllers\Controller
+class AddressBookController extends \App\Http\Controllers\Controller
 {
-    
+
     /**
-    * 用户列表
-    * @return string
-    */
+     * 用户列表
+     *
+     * @return false|string
+     * @throws \Illuminate\Validation\ValidationException
+     */
     public function list()
     {
         # 验证
@@ -29,24 +31,24 @@ class Address_bookController extends \App\Http\Controllers\Controller
         $order = request('order');
 
         # 获取模型
-        $Address_book = Address_book::select('id','username','real_name','department','class','phone','remark');
+        $addressBook = addressBook::select('id','username','real_name','department','class','phone','remark');
 
         # 排序
         if ($orderBy == "real_name" || $orderBy == "username") 
         
-            $Address_book = $Address_book->orderByRaw("convert(substr(".$orderBy.",1,1) using 'GBK') ".$order)
+            $addressBook = $addressBook->orderByRaw("convert(substr(".$orderBy.",1,1) using 'GBK') ".$order)
                 ->orderBy('class','desc')->orderBy('department');
     
         elseif ($orderBy == "class")
-            $Address_book = $Address_book->orderBy('class',$order)->orderBy('department');
+            $addressBook = $addressBook->orderBy('class',$order)->orderBy('department');
         else
-             $Address_book = $Address_book->orderBy('department',$order)->orderBy('class','desc');
+             $addressBook = $addressBook->orderBy('department',$order)->orderBy('class','desc');
     
 
         # 分页
-        $Address_book = $Address_book->paginate(10);
+        $addressBook = $addressBook->paginate(10);
         
-        return $this->response(200,'ok',$Address_book);
+        return $this->response(200,'ok',$addressBook);
     }
 
    	/**
@@ -110,11 +112,11 @@ class Address_bookController extends \App\Http\Controllers\Controller
         
         $params = compact('user_id','real_name','department','class','phone','major','wechat_id','email','remark','head_url');
 
-        $address = Address_book::where('id',$id);
+        $address = addressBook::where('id',$id);
 
         # 判断用户是否存在，有则更新，无则添加
         if ($address->count() == 0)
-            Address_book::create($params);
+            addressBook::create($params);
         else
             $address->update($params);
 
@@ -128,12 +130,12 @@ class Address_bookController extends \App\Http\Controllers\Controller
     public function delete()
     {
     	$this->validate(request(),[
-    		'id' => 'required|exists:address_book,id'
+    		'id' => 'required|exists:addressBook,id'
     	]);
 
     	$id = request('id');
 
-    	Address_book::find($id)->delete();
+    	addressBook::find($id)->delete();
 
     	return $this->response(200,'ok');
     }
@@ -152,7 +154,7 @@ class Address_bookController extends \App\Http\Controllers\Controller
         # 获取参数
         $key = '%'.request('search_word').'%';
 
-        $address = Address_book::select('id','username','real_name','department','class','phone','is_admin','remark')
+        $address = addressBook::select('id','username','real_name','department','class','phone','is_admin','remark')
             ->where('username','like',$key)
             ->orWhere('real_name','like',$key)
             ->orWhere('class','like',$key)
@@ -171,15 +173,15 @@ class Address_bookController extends \App\Http\Controllers\Controller
      * 联系人详细信息
      * @return string
     */
-    public function address_book()
+    public function addressBook()
     {
         # 参数验证
         $this->validate(request(),[
-           'id' => 'required|exists:address_book,id'
+           'id' => 'required|exists:addressBook,id'
         ]);
 
         $id = request('id');
-        $result = Address_book::where('id',$id)
+        $result = addressBook::where('id',$id)
             ->select('id','real_name','department','class','phone','major','wechat_id','email','remark')
             ->first();
 

@@ -4,9 +4,9 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Address_book extends Model
+class AddressBook extends Model
 {
     //public $timestamps = false;
-    protected $table = "address_book";
+    protected $table = "addressBook";
     protected $guarded = [];
 }

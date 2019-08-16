@@ -3,8 +3,8 @@ namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use App\User;
-use App\Address_book;
-use App\Duty_table;
+use App\addressBook;
+use App\Duty_;
 use Illuminate\Support\Facades\Redis;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Leave;
@@ -13,9 +13,11 @@ use App\Complement;
 class UserController extends \App\Http\Controllers\Controller
 {
     /**
-    * 用户列表
-    * @return string
-    */
+     * 用户列表
+     *
+     * @param Request $request
+     * @return false|string
+     */
     public function list(Request $request)
     {
         # 验证
@@ -73,7 +75,7 @@ class UserController extends \App\Http\Controllers\Controller
         $user->delete();
 
         // 删除该用户的 排班，请假，补班
-        Duty_table::where('openid',$openid)->delete();
+        Duty_::where('openid',$openid)->delete();
         Leave::where('openid',$openid)->delete();
         Complement::where('openid',$openid)->delete();
 
@@ -128,9 +130,11 @@ class UserController extends \App\Http\Controllers\Controller
     }
 
     /**
-    * 添加成员
-    * @return string
-    */
+     * 添加成员
+     *
+     * @return false|string
+     * @throws \Illuminate\Validation\ValidationException
+     */
     public function add()
     {
         # 参数验证
@@ -176,10 +180,13 @@ class UserController extends \App\Http\Controllers\Controller
         return $this->response(200,'ok',$users);
     }
 
+
     /**
-    * 导至通讯录
-    * @return string
-    */
+     * 导至通讯录
+     *
+     * @return false|string
+     * @throws \Illuminate\Validation\ValidationException
+     */
     public function to_addressBook()
     {
         # 参数验证
@@ -199,9 +206,9 @@ class UserController extends \App\Http\Controllers\Controller
 
         foreach ($users as $user)
         {
-            $address = Address_book::where('user_id',$user['user_id']);
+            $address = addressBook::where('user_id',$user['user_id']);
             if ($address->count() == 0)   // 没有插入，有则更新
-                Address_book::create($user);
+                addressBook::create($user);
             else
                $address->update($user);
         }

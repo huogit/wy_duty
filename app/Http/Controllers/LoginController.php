@@ -8,42 +8,35 @@ use App\User;
 
 class  LoginController extends Controller
 {
-/**
-* 获取所有
-*
-* @param Request $request
-* @return string
-*/
-
-    private function get_New_accessToken()
-    {
-        $url = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid='.'wxe0e9860d811af920'.'&secret='.'2b594840c9684b5340d20f4997e06394';
-        $res = $this->http_get($url);
-        $data = json_decode($res,true);
-        $accessToken = $data['access_token'];
-
-        return $accessToken;
-    }
-
-
-
-    public function get_unionid(Request $request)
-    {
-
-        $openid = 'o99WF1mmZCiMDgUvj--bHc5EVu_s';
-        $access_token = $this->get_New_accessToken();
-        echo $access_token;
-        $lang = 'zh_CN';
-
-        $url = 'https://api.weixin.qq.com/cgi-bin/user/info?';
-        $query = compact('openid','access_token','lang');
-        $url .= http_build_query($query);
-        $data = $this->http_get($url,$query);
-        $data = json_decode($data,true);
-
-        //return $this->response(200,'ok',$data);
-
-    }
+    //TODO 值班表提醒功能
+//
+//    private function get_New_accessToken()
+//    {
+//        $url = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid='.'wxe0e9860d811af920'.'&secret='.'2b594840c9684b5340d20f4997e06394';
+//        $res = $this->http_get($url);
+//        $data = json_decode($res,true);
+//        $accessToken = $data['access_token'];
+//
+//        return $accessToken;
+//    }
+//
+//    public function get_unionid(Request $request)
+//    {
+//
+//        $openid = 'o99WF1mmZCiMDgUvj--bHc5EVu_s';
+//        $access_token = $this->get_New_accessToken();
+//        echo $access_token;
+//        $lang = 'zh_CN';
+//
+//        $url = 'https://api.weixin.qq.com/cgi-bin/user/info?';
+//        $query = compact('openid','access_token','lang');
+//        $url .= http_build_query($query);
+//        $data = $this->http_get($url,$query);
+//        $data = json_decode($data,true);
+//
+//        //return $this->response(200,'ok',$data);
+//
+//    }
 
     /**
      * 获取openid
@@ -70,6 +63,8 @@ class  LoginController extends Controller
             return $this->response(400,'微信服务器返回的错误',$data);
     }
 
+
+    // TODO 登录时传信息
 
     /**
      * 登录

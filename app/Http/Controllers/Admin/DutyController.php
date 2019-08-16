@@ -8,35 +8,37 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Redis;
-use App\Duty_table;
-use App\Complement;
+use App\Duty;
 use App\Leave;
 use App\User;
 
 class DutyController extends \App\Http\Controllers\Controller
 {
-
     /**
      * 首页
+     *
      * @return mixed
      */
     public function start()
     {
-        $top_bg_color = config('startpage.top_bg_color'); //Redis::exists('top_bg_color') ? Redis::get('top_bg_color') : '#CCCCCC';
-        $top_word_color = config('startpage.top_word_color'); //Redis::exists('top_word_color') ? Redis::get('top_word_color') : '#FFFFFF';
-        $bottom_word_color = config('startpage.bottom_word_color'); //Redis::exists('bottom_word_color') ? Redis::get('bottom_word_color') : '#FFFFFF';
-        $bottom_button_color = config('startpage.bottom_button_color'); //Redis::exists('bottom_button_color') ? Redis::get('bottom_button_color') : '#CCCCCC';
+        $top_bg_color = Cache::get('top_bg_color');
+        $top_word_color = Cache::get('top_word_color');
+        $bottom_word_color = Cache::get('bottom_word_color');
+        $bottom_button_color = Cache::get('bottom_button_color');
 
-        $start_img_url = config('startpage.start_img_url');//Redis::exists('start_img_url') ? Redis::get('start_img_url') : null;
+        $start_img_url = Cache::get('start_img_url');
 
-        return $this->response(200,'ok',compact('top_bg_color','top_word_color','bottom_word_color','bottom_button_color','start_img_url','session'));
+        return $this->response(200,'ok',compact('top_bg_color','top_word_color','bottom_word_color','bottom_button_color','start_img_url'));
    }
+
+
+   // TODO 存到缓存
 
     /**
      * 更改首页样式
+     *
      * @return mixed
      */
     public function start_change()
@@ -48,17 +50,19 @@ class DutyController extends \App\Http\Controllers\Controller
         $siu = request('start_img_url');
 
         if (!empty($tbc))
-            Redis::set('top_bg_color',request('top_bg_color'));
+            Cache::forever('top_bg_color',request('top_bg_color'));
 
         if (!empty($twc))
-            Redis::set('top_word_color',request('top_word_color'));
+            Cache::forever('top_word_color',request('top_word_color'));
+
         if (!empty($bbc))
-            Redis::set('bottom_word_color',request('bottom_button_color'));
+            Cache::forever('bottom_word_color',request('bottom_button_color'));
+
         if (!empty($bwc))
-            Redis::set('bottom_button_color',request('bottom_word_color'));
+            Cache::forever('bottom_button_color',request('bottom_word_color'));
 
         if (!empty($siu))
-            Redis::set('start_img_url',request('start_img_url'));
+            Cache::forever('start_img_url',request('start_img_url'));
 
         return $this->response(200,'ok');
     }
@@ -86,7 +90,6 @@ class DutyController extends \App\Http\Controllers\Controller
      */
     public function records(Request $request)
     {
-        # 验证
         $request->validate([
             'start' => 'required|date',
             'end' => 'required|date',
@@ -98,30 +101,20 @@ class DutyController extends \App\Http\Controllers\Controller
         $end = request('end');
         $end = date("Y-m-d",strtotime("+1 day",strtotime($end)));
 
-        // 先 join 再 union
-        $complements = DB::table('duty_records')
-            ->where('type',1)
-            ->whereBetween('duty_records.created_at',[$start,$end])
-            ->join('complements','duty_records.foreign_id','=','complements.id')
-            ->join('users','duty_records.openid','=','users.openid')
-            ->select('complements.day','complements.place','complements.time','duty_records.created_at','users.real_name');
+        $records = Duty::whereBetween('sign_time',[$start,$end])
+            ->select('day','place','time')->selectRaw('sign_time as created_at');
 
-        $dutys = DB::table('duty_records')
-            ->where('type',0)
-            ->whereBetween('duty_records.created_at',[$start,$end])
-            ->join('duty_table','duty_records.foreign_id','=','duty_table.id')
-            ->join('users','duty_records.openid','=','users.openid')
-            ->select('duty_table.day','duty_table.place','duty_table.time','duty_records.created_at','users.real_name')
-            ->union($complements)
-            ->orderByRaw('date(created_at) DESC')   // 用原生 按日期排序而不是按时间排序
-            ->orderBy('place')
+        $records = Leave::whereBetween('sign_time',[$start,$end])
+            ->select('day','place','time')->selectRaw('sign_time as created_at')
+            ->union($records)->orderBy('created_at')->orderBy('place')//->orderBy('date(created_at) DESC')
             ->paginate(10);
 
-        return $this->response(200,'ok',$dutys);
+        return $this->response(200,'ok',$records);
     }
 
     /**
      * 该周值班列表
+     *
      * @return string
      */
     public function list(Request $request)
@@ -134,12 +127,12 @@ class DutyController extends \App\Http\Controllers\Controller
         # 获取参数
         $week = request('week');
 
-        $duty_table = Duty_table::where('week',$week)
-            ->with('user:openid,real_name,color')
-            ->select('openid','day','place','time')
+        $duty = Duty::where('week',$week)
+            ->with('user:id,real_name,color')
+            ->select('id','user_id','day','place','time')
             ->get();
 
-        return $this->response(200,'ok',$duty_table);
+        return $this->response(200,'ok',$duty);
     }
 
     /**
@@ -160,65 +153,76 @@ class DutyController extends \App\Http\Controllers\Controller
         $end = request('end');
         $end = date("Y-m-d",strtotime("+1 day",strtotime($end))); // end 加+1天，因为传过来的日期是指今天0点，但是需要的是今天24点，即明天的0点
 
-        $complements = Complement::select('openid','auditor_id','id','created_at','audit_time','duty_status')
-            ->whereBetween('created_at',[$start,$end])    
-            ->with('user:openid,real_name')->with('auditor:openid,real_name')
+        $complements = Leave::select('user_id','auditor_id','id','audit_time','sign_time')
+            ->selectRaw('complement_created_at as created_at')
+            ->where('week','!=',null)->whereBetween('complement_created_at',[$start,$end])
+            ->with('user:id,real_name')->with('auditor:id,real_name')
             ->selectRaw("1 as type");
         
-        $applies = Leave::select('openid','auditor_id','id','created_at','audit_time','duty_status')
-            ->with('user:openid,real_name')->with('auditor:openid,real_name')
+        $applies = Leave::select('user_id','auditor_id','id','created_at','audit_time','sign_time')
+            ->with('user:id,real_name')->with('auditor:id,real_name')
             ->whereBetween('created_at',[$start,$end])
-            ->where('type',0)
-            ->selectRaw("0 as type")
-            ->union($complements)
-            ->orderBy('created_at','desc')
-            ->paginate(10);
+            ->selectRaw("0 as type")->union($complements)->orderBy('created_at','desc')->paginate(10);
+
+        foreach ($applies as $apply){
+            $apply->duty_status = $apply->sign_time == null ? 0 : 1;
+        }
 
         return $this->response(200,'ok',$applies);
     }
 
+
     /**
-     * 申请详情
-     * @return string
-    */
+     * 申請詳情
+     *
+     * @param Request $request
+     * @return false|string
+     */
     public function apply_detail(Request $request)
     {
         # 验证
         $request->validate([
-            'id' => 'required|numeric',
-            'type' => 'required|boolean'
+            'id' => 'required',
+            'type' => 'required|in:0,1'
         ]);
 
         # 获取参数
         $id = request('id');
         $type = request('type');
 
-        if ($type == 0) 
-            $result = Leave::where('leaves.id',$id)
-                ->join('duty_table','leaves.duty_id','=','duty_table.id')
-                ->select('leaves.openid','duty_table.week','duty_table.day','duty_table.time','duty_table.place','leaves.duty_status')
-                ->with('user:openid,real_name,department')
-                ->get();
-        elseif ($type == 1) 
-            $result = Complement::where('id',$id)
-                ->with('user:openid,real_name,department')
-                ->select('openid','week','day','time','place','duty_status')
-                ->selectRaw("null as reason")
-                ->get();
+        if ($type == 0){
+            $leave = Leave::where('id',$id)->with('user:id,real_name')
+                ->select('reason','duty_id','user_id')->first();
 
-        return $this->response(200,'ok',$result);
+            $data = $leave->toArray();
+            $data['week'] = $leave->duty->week;
+            $data['day'] = $leave->duty->day;
+            $data['place'] = $leave->duty->place;
+            $data['time'] = $leave->duty->time;
+
+            $data['duty_stauts'] = $leave->sign_time == null ? 0 : 1;
+        }else{
+            $data = Leave::where('id',$id)->with('user:id,real_name')
+                ->select('user_id','week','day','time','place')->first();
+
+            $data->duty_stauts = $data->sign_time == null ? 0 : 1;
+        }
+
+        return $this->response(200,'ok',$data);
     }
 
     /**
-     * 删除申请
-     * @return string
-    */
+     * 刪除申請
+     *
+     * @param Request $request
+     * @return false|string
+     */
     public function apply_delete(Request $request)
     {
         # 验证
         $request->validate([
             'id' => 'required|numeric',
-            'type' => 'required|boolean'
+            'type' => 'required|in:0,1'
         ]);
 
         # 获取参数
@@ -234,16 +238,18 @@ class DutyController extends \App\Http\Controllers\Controller
     }
 
     /**
-     * 该天该地点值班人员
-     * @return string
-    */
+     * 該天該地點值班人員
+     *
+     * @param Request $request
+     * @return false|string
+     */
     public function member(Request $request)
     {
         # 验证
         $request->validate([
-            'day' => 'required|numeric|max:5|min:1',
-            'place' => 'required|boolean',
-            'time' => 'required|boolean'
+            'day' => 'required|integer|between:1,5',
+            'place' => 'required|in:0,1',
+            'time' => 'required|in:0,1'
         ]);
 
         # 获取参数
@@ -252,18 +258,20 @@ class DutyController extends \App\Http\Controllers\Controller
         $place = request('place');
         $time = request('time');
 
-        $users = Duty_table::with('User:openid,real_name,color')
+        $users = Duty::with('User:id,real_name,color')
             ->where('week',$week)->where('day',$day)->where('place',$place)->where('time',$time)
-            ->select('openid','day','place','time')
+            ->select('id','day','place','time')
             ->get();
 
         return $this->response(200,'ok',$users);
     }
 
     /**
-     * 编辑排班
-     * @return string
-    */
+     * 編輯排班
+     *
+     * @param Request $request
+     * @return false|string
+     */
     public function change(Request $request)
     {
         # 验证
@@ -292,7 +300,7 @@ class DutyController extends \App\Http\Controllers\Controller
             foreach ($adds as $add) 
             {
                 // 判断是否已存在此排班
-                $count = Duty_table::where('openid',$add['openid'])
+                $count = Duty::where('openid',$add['openid'])
                     ->whereIn('week',[$week,$week + 1])
                     ->where('day',$add['day'])
                     ->whereIn('place',[0,1])
@@ -305,7 +313,7 @@ class DutyController extends \App\Http\Controllers\Controller
                 // 添加排班
                 for($i = $week; $i <= 20; $i++)
                 {
-                    Duty_table::create([
+                    Duty::create([
                         'openid' => $add['openid'],
                         'week' => $i,
                         'day' => $add['day'],
@@ -320,7 +328,7 @@ class DutyController extends \App\Http\Controllers\Controller
         {
             foreach ($deletes as $delete) 
             {
-                Duty_table::where('openid',$delete['openid'])
+                Duty::where('openid',$delete['openid'])
                     ->where('day',$delete['day'])
                     ->where('place',$delete['place'])
                     ->where('time',$delete['time'])
@@ -331,96 +339,4 @@ class DutyController extends \App\Http\Controllers\Controller
 
         return $this->response(200,'ok');
     }
-
-     /**
-     * 查询是否未签到，添加未签到记录
-     * @return string
-    */
-    public function check()
-    {
-        //echo date('H:i:s');
-        # 获取当前时间
-        $week = $this->nowWeek();
-        $day = $this->nowDay();
-
-//        $week = 6;
-//        $day = 3;
-
-        # 当周当天，值班补班的
-        $dutys = Duty_table::where('week',$week)->where('day',$day);
-        $complements = Complement::where('week',$week)->where('day',$day);
-
-        // 判断现在的时间,16:30:00后才可以添加5-6节未签到记录，18:00后才可以添加7-8节的未签到记录。
-        if (date('H:i') >= '16:30' && date('H:i') <= '18:00')
-        {
-            // 没有签到记录 并且 没有未签到记录，添加未签到记录
-            $dutys = $dutys->where('time',0)->doesntHave('duty_record');
-            $complements = $complements->where('time',0)->doesntHave('duty_record');
-            echo '56节';
-        }
-        elseif (date('H:i') > '18:00' && date('H:i') < '21:00')
-        {
-            // 没有签到记录，添加未签到记录
-            $dutys = $dutys->where('time',1)->doesntHave('duty_record');
-            $complements = $complements->where('time',1)->doesntHave('duty_record');
-            echo '78节';
-        }
-        else
-        {
-            return;
-        }
-
-        // 未值班
-        if ($dutys->count() > 0)
-        {
-            echo '有未签到记录'.$dutys->count().'条'."\n";
-            foreach ($dutys->get() as $duty) 
-            {
-                $qingjia = Leave::where('duty_id',$duty->id)->where('type',0);// 请假记录
-                if ($qingjia->count() == 1)// 有请假记录，不用添加未签到记录
-                {
-                    echo '但请假了'."\n";
-                    continue;
-                }
-                $leave = Leave::where('duty_id',$duty->id)->where('type',1); // 未签到记录
-                if ($leave->count() == 0) // 没有未签到记录,添加未签到记录
-                {
-                    $duty_id = $duty->id;
-                    $type = 1;
-                    $openid = $duty->openid;
-                    Leave::create(compact('openid','type','duty_id'));
-                    echo '添加未签到记录成功'."\n";
-                }
-                echo '已有未签到记录'."\n";
-            }
-        }
-        else
-        {
-            echo '没有未签到'."\n";
-        }
-
-        // 未补班
-        if ($complements->count() > 0)
-        {
-            echo '有未补班记录'.$complements->count().'条'."\n";
-            // 判断是否已有未签到记录
-            foreach ($complements->get() as $complement)
-            {
-                $leave = Leave::where('duty_id', $complement->duty_id)->where('type', 1); // 未签到记录
-                if ($leave->count() == 0)
-                {
-                    $duty_id = $complement->duty_id;
-                    $type = 1;
-                    $openid = $complement->openid;
-                    Leave::create(compact('openid', 'type', 'duty_id'));
-                    echo '添加未签到记录成功'."\n";
-                }
-            }
-        }
-        else
-        {
-            echo '没有未补班'."\n";
-        }
-    }
-
 }
