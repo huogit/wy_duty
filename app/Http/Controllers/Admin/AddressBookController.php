@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\addressBook;
+use App\AddressBook;
 use GuzzleHttp\Psr7\Request;
 use Maatwebsite\Excel\Validators\Failure;
 use App\AddressImport;
@@ -31,7 +31,7 @@ class AddressBookController extends \App\Http\Controllers\Controller
         $order = request('order');
 
         # 获取模型
-        $addressBook = addressBook::select('id','username','real_name','department','class','phone','remark');
+        $addressBook = AddressBook::select('id','username','real_name','department','class','phone','remark');
 
         # 排序
         if ($orderBy == "real_name" || $orderBy == "username") 
@@ -112,11 +112,11 @@ class AddressBookController extends \App\Http\Controllers\Controller
         
         $params = compact('user_id','real_name','department','class','phone','major','wechat_id','email','remark','head_url');
 
-        $address = addressBook::where('id',$id);
+        $address = AddressBook::where('id',$id);
 
         # 判断用户是否存在，有则更新，无则添加
         if ($address->count() == 0)
-            addressBook::create($params);
+            AddressBook::create($params);
         else
             $address->update($params);
 
@@ -135,7 +135,7 @@ class AddressBookController extends \App\Http\Controllers\Controller
 
     	$id = request('id');
 
-    	addressBook::find($id)->delete();
+        AddressBook::find($id)->delete();
 
     	return $this->response(200,'ok');
     }
@@ -154,7 +154,7 @@ class AddressBookController extends \App\Http\Controllers\Controller
         # 获取参数
         $key = '%'.request('search_word').'%';
 
-        $address = addressBook::select('id','username','real_name','department','class','phone','is_admin','remark')
+        $address = AddressBook::select('id','username','real_name','department','class','phone','is_admin','remark')
             ->where('username','like',$key)
             ->orWhere('real_name','like',$key)
             ->orWhere('class','like',$key)
@@ -181,7 +181,7 @@ class AddressBookController extends \App\Http\Controllers\Controller
         ]);
 
         $id = request('id');
-        $result = addressBook::where('id',$id)
+        $result = AddressBook::where('id',$id)
             ->select('id','real_name','department','class','phone','major','wechat_id','email','remark')
             ->first();
 

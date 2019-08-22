@@ -70,6 +70,7 @@ class DutyController extends \App\Http\Controllers\Controller
 
     /**
      * 值班管理页
+     *
      * @return string
      */
     public function index()
@@ -86,6 +87,7 @@ class DutyController extends \App\Http\Controllers\Controller
 
     /**
      * 签到记录
+     *
      * @return string
      */
     public function records(Request $request)

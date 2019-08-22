@@ -16,6 +16,7 @@ class Controller extends BaseController
         'template' => [
             '审核提醒' => 'NneweDTttwI6OdpvMFY9icYPtLBaiGNRib0ejiPcgVk',
             '审核结果通知' => '5L5HdpAsFPXRfJvBOWW0xlMZVSggQBk1nt6IpZ3r_pQ',
+            //'签到提醒'
         ],
     ];
 
@@ -110,7 +111,7 @@ class Controller extends BaseController
     // 向微信获取新调用凭证
     private function get_new_accessToken()
     {
-        $url = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid='.env('APPID').'&secret='.env('APPSECRET');
+        $url = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid='.env('WECHAT_MINI_PROGRAM_APPID').'&secret='.env('APPSECRET');
         $res = $this->http_get($url);
         $data = json_decode($res,true);
         $accessToken = $data['access_token'];

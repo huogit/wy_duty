@@ -5,38 +5,19 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\User;
+use App\Utilities\WYWeChatSDK;
 
 class  LoginController extends Controller
 {
     //TODO 值班表提醒功能
-//
-//    private function get_New_accessToken()
-//    {
-//        $url = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid='.'wxe0e9860d811af920'.'&secret='.'2b594840c9684b5340d20f4997e06394';
-//        $res = $this->http_get($url);
-//        $data = json_decode($res,true);
-//        $accessToken = $data['access_token'];
-//
-//        return $accessToken;
-//    }
-//
-//    public function get_unionid(Request $request)
-//    {
-//
-//        $openid = 'o99WF1mmZCiMDgUvj--bHc5EVu_s';
-//        $access_token = $this->get_New_accessToken();
-//        echo $access_token;
-//        $lang = 'zh_CN';
-//
-//        $url = 'https://api.weixin.qq.com/cgi-bin/user/info?';
-//        $query = compact('openid','access_token','lang');
-//        $url .= http_build_query($query);
-//        $data = $this->http_get($url,$query);
-//        $data = json_decode($data,true);
-//
-//        //return $this->response(200,'ok',$data);
-//
-//    }
+
+    public function auth()
+    {
+        $sdk = new WYWeChatSDK();
+        $authRedirectUrl = $sdk->getOAuthRedirectUrl('duty');
+        return redirect($authRedirectUrl);
+    }
+
 
     /**
      * 获取openid
@@ -52,7 +33,7 @@ class  LoginController extends Controller
 
         $code = request('code');
 
-        $url = 'https://api.weixin.qq.com/sns/jscode2session?appid='.env('APPID').'&secret='.env('APPSECRET').'&js_code='.$code.'&grant_type=authorization_code';
+        $url = 'https://api.weixin.qq.com/sns/jscode2session?appid='.env('WECHAT_MINI_PROGRAM_APPID').'&secret='.env('WECHAT_MINI_PROGRAM_SECRET').'&js_code='.$code.'&grant_type=authorization_code';
         $data = $this->http_get($url);
 
         $data = json_decode($data,true);
@@ -80,7 +61,7 @@ class  LoginController extends Controller
 
         $code = request('code');
         //$info = request(['gender','nickName','city','provinces','country','avatarUrl']);
-        $url = 'https://api.weixin.qq.com/sns/jscode2session?appid='.env('APPID').'&secret='.env('APPSECRET').'&js_code='.$code.'&grant_type=authorization_code';
+        $url = 'https://api.weixin.qq.com/sns/jscode2session?appid='.env('WECHAT_MINI_PROGRAM_APPID').'&secret='.env('APPSECRET').'&js_code='.$code.'&grant_type=authorization_code';
 
         // 获取openid
         $data = $this->http_get($url);

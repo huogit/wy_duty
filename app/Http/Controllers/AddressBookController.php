@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\addressBook;
+use App\AddressBook;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -15,7 +15,7 @@ class AddressBookController extends Controller
      */
     public function list()
     {
-        $addressBooks = addressBook::select('id','class','real_name','phone')->orderBy('class','desc')->orderBy('department');
+        $addressBooks = AddressBook::select('id','class','real_name','phone')->orderBy('class','desc')->orderBy('department');
         $count = $addressBooks->count();
         $addressBooks = $addressBooks->get();
         $data = compact('count','addressBooks');
@@ -33,7 +33,7 @@ class AddressBookController extends Controller
         $search_word = request('search_word');
         $search_word = '%'.$search_word.'%';
 
-        $result_list = addressBook::where('real_name','like',$search_word)
+        $result_list = AddressBook::where('real_name','like',$search_word)
             ->orWhere('phone','like',$search_word)
             ->select('id','class','real_name','phone')
             ->orderBy('class','desc')
@@ -59,7 +59,7 @@ class AddressBookController extends Controller
 
         $id = request('id');
 
-        $address = addressBook::where('id',$id)
+        $address = AddressBook::where('id',$id)
             ->select('head_url','username','real_name','department','class','major','phone','wechat_id','email')
             ->first()->toArray();
 

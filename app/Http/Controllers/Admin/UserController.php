@@ -3,7 +3,7 @@ namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use App\User;
-use App\addressBook;
+use App\AddressBook;
 use App\Duty_;
 use Illuminate\Support\Facades\Redis;
 use Maatwebsite\Excel\Facades\Excel;
@@ -206,9 +206,9 @@ class UserController extends \App\Http\Controllers\Controller
 
         foreach ($users as $user)
         {
-            $address = addressBook::where('user_id',$user['user_id']);
+            $address = AddressBook::where('user_id',$user['user_id']);
             if ($address->count() == 0)   // 没有插入，有则更新
-                addressBook::create($user);
+                AddressBook::create($user);
             else
                $address->update($user);
         }
