@@ -12,8 +12,8 @@ use Illuminate\Http\Request;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::get('/get_unionid','LoginController@get_unionid');
-
+Route::get('/auth','LoginController@auth');
+Route::get('test','DutyController@sendNoSign');
 // 登陆模块
 Route::post('/login','LoginController@login');                          /* 登录 */
 Route::get('/get_openid','LoginController@get_openid');                 /* 获取openid */
@@ -37,9 +37,9 @@ Route::group(['middleware' => 'CheckToken'], function() {
     Route::post('/duty/apply/auditing', 'DutyController@auditing')->middleware('CheckAdmin');   /* 审批操作 */
 
     // 通讯录模块
-    Route::get('/address_book', 'addressBookController@list');                         /* 通讯录列表 */
-    Route::get('/address_book/search', 'addressBookController@search');                /* 搜索联系人 */
-    Route::get('/address_book/{id}', 'addressBookController@addressBook');             /* 联系人详细信息 */
+    Route::get('/address_book', 'AddressBookController@list');                         /* 通讯录列表 */
+    Route::get('/address_book/search', 'AddressBookController@search');                /* 搜索联系人 */
+    Route::get('/address_book/{id}', 'AddressBookController@addressBook');             /* 联系人详细信息 */
 
     // 用户模块
     Route::get('/user/me','UserController@me');                             /* 我的信息 */

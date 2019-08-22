@@ -12,7 +12,7 @@
 */
 
 // 登录模块
-Route::post('/admin/login','Admin\LoginController@login')->name('login');
+Route::post('/admin/login','Admin\LoginController@login');
 Route::get('/admin/logout','Admin\LoginController@logout');
 
 // 首页模块（大家都可以进）
@@ -44,11 +44,11 @@ Route::group(['middleware' => 'auth:admin'], function() {
     Route::post('/admin/user/to_addressBook', 'Admin\UserController@to_addressBook');/* 导至通讯录 */
 
     // 通讯录模块
-    Route::get('/admin/addressBook/list', 'Admin\address_bookController@list');          /* 通讯录列表 */
-    Route::post('/admin/addressBook/add', 'Admin\address_bookController@add');           /* 添加联系人 */
-    Route::get('/admin/addressBook', 'Admin\address_bookController@addressBook');       /* 联系人详细信息 */
-    Route::get('/admin/addressBook/search', 'Admin\address_bookController@search');      /* 搜索联系人 */
-    Route::delete('/admin/addressBook/delete', 'Admin\address_bookController@delete');   /* 删除联系人 */
-    Route::post('/admin/addressBook/import', 'Admin\address_bookController@import');     /* 批量导入 */
+    Route::get('/admin/address_book/list', 'Admin\AddressBookController@list');          /* 通讯录列表 */
+    Route::post('/admin/address_book/add', 'Admin\AddressBookController@add');           /* 添加联系人 */
+    Route::get('/admin/address_book', 'Admin\AddressBookController@addressBook');        /* 联系人详细信息 */
+    Route::get('/admin/address_book/search', 'Admin\AddressBookController@search');      /* 搜索联系人 */
+    Route::delete('/admin/address_book/delete', 'Admin\AddressBookController@delete');   /* 删除联系人 */
+    Route::post('/admin/address_book/import', 'Admin\AddressBookController@import');     /* 批量导入 */
 });
 

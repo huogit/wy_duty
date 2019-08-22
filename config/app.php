@@ -177,7 +177,6 @@ return [
 
 
         Maatwebsite\Excel\ExcelServiceProvider::class,
-
     ],
 
     /*
@@ -229,7 +228,6 @@ return [
 
 
         "Excel" => Maatwebsite\Excel\Facades\Excel::class,
-
     ],
 
 ];

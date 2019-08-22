@@ -16,7 +16,7 @@ class Controller extends BaseController
         'template' => [
             '审核提醒' => 'NneweDTttwI6OdpvMFY9icYPtLBaiGNRib0ejiPcgVk',
             '审核结果通知' => '5L5HdpAsFPXRfJvBOWW0xlMZVSggQBk1nt6IpZ3r_pQ',
-            //'签到提醒'
+            '考勤提醒' => 'lrfJHjJAZrKINe43q1mRc0XSdejxh0ql5kFpybZixgE'
         ],
     ];
 
@@ -34,7 +34,7 @@ class Controller extends BaseController
     {
         $school_begin_date = env('SCHOOL_BEGIN_DATE');// 开学日期
         $difference = time() - strtotime($school_begin_date); // 今天 - 开学日期
-        return ceil($difference / 604800); // 第几周
+        return (int)ceil($difference / 604800); // 第几周
     }
 
     public function nowDay()

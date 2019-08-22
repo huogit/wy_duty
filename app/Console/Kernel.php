@@ -25,14 +25,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')
-        //          ->hourly();
-
-        // 检查未签到，添加未签到记录
-        $schedule->call(function () {
-            $duty = new Admin\DutyController();
-            $duty->check();
-        })->hourly();
+         $schedule->command('kaoqin')
+                  ->everyMinute();
     }
 
     /**

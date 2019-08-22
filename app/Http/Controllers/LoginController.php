@@ -61,7 +61,7 @@ class  LoginController extends Controller
 
         $code = request('code');
         //$info = request(['gender','nickName','city','provinces','country','avatarUrl']);
-        $url = 'https://api.weixin.qq.com/sns/jscode2session?appid='.env('WECHAT_MINI_PROGRAM_APPID').'&secret='.env('APPSECRET').'&js_code='.$code.'&grant_type=authorization_code';
+        $url = 'https://api.weixin.qq.com/sns/jscode2session?appid='.env('WECHAT_MINI_PROGRAM_APPID').'&secret='.env('WECHAT_MINI_PROGRAM_SECRET').'&js_code='.$code.'&grant_type=authorization_code';
 
         // 获取openid
         $data = $this->http_get($url);
