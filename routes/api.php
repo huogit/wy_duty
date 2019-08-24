@@ -31,7 +31,7 @@ Route::group(['middleware' => 'CheckToken'], function() {
     Route::post('/duty/apply/complement', 'DutyController@complement');   /* 申请补班 */
     Route::post('/duty/apply/leave', 'DutyController@leave');             /* 申请请假 */
     Route::get('/duty/apply/me', 'DutyController@my_apply');              /* 我的申请 */
-    Route::delete('/duty/apply', 'DutyController@cancel');                /* 取消申请 */
+    Route::delete('/duty/apply/cancel', 'DutyController@cancel');                /* 取消申请 */
 
     Route::get('/duty/apply/audit', 'DutyController@audit')->middleware('CheckAdmin');          /* 审批页 */
     Route::post('/duty/apply/auditing', 'DutyController@auditing')->middleware('CheckAdmin');   /* 审批操作 */
