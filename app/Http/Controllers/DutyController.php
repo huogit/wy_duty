@@ -314,7 +314,8 @@ class DutyController extends Controller
                 return $this->response(403,'值班时间已过，无法取消请假申请');
 
             // 文秘小姐姐已拒绝，无法取消
-            if ($leave->audit_status)
+            if ($leave->audit_status == 2)
+                return $this->response(403,'申请已拒绝，无法取消');
 
             // 删除请假申请
             if ($leave->delete()) {
@@ -472,6 +473,9 @@ class DutyController extends Controller
             case 0:
                 $leave = Leave::find($id);
                 $leave->update(compact('auditor_id','audit_status','audit_time'));
+                if ($audit_status == 2){
+                    User::find($leave->user->id)->decreament('leaves_count');
+                }
                 break;
             // 补班
             case 1:
