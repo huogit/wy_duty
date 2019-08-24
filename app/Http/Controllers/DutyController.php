@@ -476,6 +476,29 @@ class DutyController extends Controller
                 if ($audit_status == 2){
                     User::find($leave->user->id)->decrement('leaves_count');
                 }
+                $data = [
+                    "first" => [
+                        "value" => "亲，您提交申请现已处理。",
+                        "color" => "#173177"
+                    ],
+                    "keyword1" => [
+                        "value" => "你",
+                        "color" => "#173177"
+                    ],
+                    "keyword2" => [
+                        "value" => $audit_status == 1 ? "通过" : "拒绝",
+                        "color" => "#173177"
+                    ],
+                    "keyword3" => [
+                        "value" => "刚刚",
+                        "color" => "#173177"
+                    ],
+                    "remark" => [
+                        "value" => "审核通过后可通过公众号进入系统",
+                        "color" => "#173177"
+                    ],
+                ];
+                $this->sendTplMessage($leave->user->wechat_openid, '审核结果通知', $data);
                 break;
             // 补班
             case 1:
