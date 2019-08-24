@@ -474,7 +474,7 @@ class DutyController extends Controller
                 $leave = Leave::find($id);
                 $leave->update(compact('auditor_id','audit_status','audit_time'));
                 if ($audit_status == 2){
-                    User::find($leave->user->id)->decreament('leaves_count');
+                    User::find($leave->user->id)->decrement('leaves_count');
                 }
                 break;
             // 补班
