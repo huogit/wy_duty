@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/wy_duty.iml" filepath="$PROJECT_DIR$/.idea/wy_duty.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/duty.iml" filepath="$PROJECT_DIR$/.idea/duty.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../oncall/.idea/oncall.iml" filepath="$PROJECT_DIR$/../oncall/.idea/oncall.iml" />
     </modules>
   </component>
 </project>
