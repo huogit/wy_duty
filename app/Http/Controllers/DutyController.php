@@ -213,7 +213,7 @@ class DutyController extends Controller
               'day' => 'required|between:1,5',
               'time' => 'required|in:0,1',
               'place' =>  'required|in:0,1',
-              'reason' => 'required|max:255',
+              'reason' => 'max:255',
           ]);
 
         $user_id = (request('jwt_user'))->id;
