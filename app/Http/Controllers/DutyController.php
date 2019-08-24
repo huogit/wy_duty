@@ -313,6 +313,9 @@ class DutyController extends Controller
             if ($this->isPastDue($duty->week,$duty->day,$duty->time))
                 return $this->response(403,'值班时间已过，无法取消请假申请');
 
+            // 文秘小姐姐已拒绝，无法取消
+            if ($leave->audit_status)
+
             // 删除请假申请
             if ($leave->delete()) {
                 $user = User::find($user_id);
@@ -515,7 +518,7 @@ class DutyController extends Controller
 
             if ($duty->sign_time != null){ // 已签到
                 $status = 1;
-            }elseif($duty->leave != null){ // 已请假
+            }elseif($duty->leave != null && $duty->leave->audit_status = 1){ // 已请假
                 $status = 2;
             }elseif($this->isPastDue($week,$day,$duty->time) && $duty->sign_time == null) { // 未签到
                 $status = 3;
