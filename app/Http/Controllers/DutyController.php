@@ -251,6 +251,7 @@ class DutyController extends Controller
         $user_id = (request('jwt_user'))->id;
 
         $complements = leave::where('user_id',$user_id)
+            ->where('week','!=',null)
             ->select('id','user_id','week','day','place','time','auditor_id','audit_status','created_at')
             ->selectRaw('0 as type')
             ->with('auditor:id,real_name')
