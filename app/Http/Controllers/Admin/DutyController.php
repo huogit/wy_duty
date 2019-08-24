@@ -193,7 +193,7 @@ class DutyController extends \App\Http\Controllers\Controller
         $type = request('type');
 
         if ($type == 0){
-            $leave = Leave::where('id',$id)->with('user:id,real_name')
+            $leave = Leave::where('id',$id)->with('user:id,real_name,department')
                 ->select('reason','duty_id','user_id')->first();
 
             $data = $leave->toArray();
@@ -204,7 +204,7 @@ class DutyController extends \App\Http\Controllers\Controller
 
             $data['duty_stauts'] = $leave->sign_time == null ? 0 : 1;
         }else{
-            $data = Leave::where('id',$id)->with('user:id,real_name')
+            $data = Leave::where('id',$id)->with('user:id,real_name,department')
                 ->select('user_id','week','day','time','place')->first();
 
             $data->duty_stauts = $data->sign_time == null ? 0 : 1;

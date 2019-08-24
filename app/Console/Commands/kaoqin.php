@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Duty;
 use App\Http\Controllers\Controller;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 class kaoqin extends Command
 {
@@ -13,7 +14,7 @@ class kaoqin extends Command
      *
      * @var string
      */
-    protected $signature = 'command:name';
+    protected $signature = 'command:kaoqin';
 
     /**
      * The console command description.
@@ -53,6 +54,7 @@ class kaoqin extends Command
         $day = $controller->nowDay();
         $time = $controller->nowTime();
         $dutys = Duty::whereWdtp(compact('week','day','time'))->where('sign_time',null)->get();
+        Log::info("week:{$week},day:{$day},time:{$time},有".count($dutys)."条未签到");
         print_r($dutys);
         foreach ($dutys as $duty) {
             $openid = $duty->user->wechat_openid;
@@ -74,7 +76,7 @@ class kaoqin extends Command
                     "color" => "#173177"
                 ],
             ];
-            $controller->sendTplMessage($openid, '考勤提醒', $data);
+            $controller->sendTplMessage($openid, '考勤提醒', $data,'pages/schedule/schedule');
         }
 
     }

@@ -9,13 +9,17 @@ use App\Utilities\WYWeChatSDK;
 
 class  LoginController extends Controller
 {
-    //TODO 值班表提醒功能
-
     public function auth()
     {
         $sdk = new WYWeChatSDK();
         $authRedirectUrl = $sdk->getOAuthRedirectUrl('duty');
         return redirect($authRedirectUrl);
+    }
+
+    public function wechat_openid($code)
+    {
+        $data = $this->http_get("https://wx-api.wangyuan.info/api/getOAuthInfo/{$code}");
+        return $this->response(200,'ok',$data);
     }
 
 

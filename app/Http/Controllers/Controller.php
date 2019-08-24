@@ -86,38 +86,38 @@ class Controller extends BaseController
         return $estr; 
     }
 
-    // 从数据库中获取旧的凭证
-    public function get_accessToken()
-    {
-        //检查凭证是否过期
-        date_default_timezone_set("Asia/Shanghai");
-        $current_time = strtotime('now');
-        $result = DB::table('accessToken')->first();
-        $updated_at = strtotime($result->updated_at);
-
-        //过期，获取新凭证，并更新数据库
-        if ($current_time - $updated_at > 7100)           // access_token的有效期为7200秒
-        {
-            $accessToken = $this->get_new_accessToken();
-            DB::table('accessToken')->update(['value'=>$accessToken]);
-            return $accessToken;
-        }
-        else
-        {//没有过期，从数据库取旧凭证
-            return $result->value;
-        }
-    }
-
-    // 向微信获取新调用凭证
-    private function get_new_accessToken()
-    {
-        $url = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid='.env('WECHAT_MINI_PROGRAM_APPID').'&secret='.env('APPSECRET');
-        $res = $this->http_get($url);
-        $data = json_decode($res,true);
-        $accessToken = $data['access_token'];
-
-        return $accessToken;
-    }
+//    // 从数据库中获取旧的凭证
+//    public function get_accessToken()
+//    {
+//        //检查凭证是否过期
+//        date_default_timezone_set("Asia/Shanghai");
+//        $current_time = strtotime('now');
+//        $result = DB::table('accessToken')->first();
+//        $updated_at = strtotime($result->updated_at);
+//
+//        //过期，获取新凭证，并更新数据库
+//        if ($current_time - $updated_at > 7100)           // access_token的有效期为7200秒
+//        {
+//            $accessToken = $this->get_new_accessToken();
+//            DB::table('accessToken')->update(['value'=>$accessToken]);
+//            return $accessToken;
+//        }
+//        else
+//        {//没有过期，从数据库取旧凭证
+//            return $result->value;
+//        }
+//    }
+//
+//    // 向微信获取新调用凭证
+//    private function get_new_accessToken()
+//    {
+//        $url = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid='.env('WECHAT_MINI_PROGRAM_APPID').'&secret='.env('APPSECRET');
+//        $res = $this->http_get($url);
+//        $data = json_decode($res,true);
+//        $accessToken = $data['access_token'];
+//
+//        return $accessToken;
+//    }
 
     /**
      * HTTP GET请求
@@ -193,7 +193,7 @@ class Controller extends BaseController
 
         $miniprogram = [
             "appid" => "wx94d6029e19a3e7c9",
-            "pagepath" => "pages/examine/examine"
+            "pagepath" => $pagepath
         ];
         $tplId = $this->config['template'][$tplMask];
         $postData = [

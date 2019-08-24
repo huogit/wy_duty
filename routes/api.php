@@ -12,11 +12,11 @@ use Illuminate\Http\Request;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::get('/auth','LoginController@auth');
-Route::get('test','DutyController@sendNoSign');
 // 登陆模块
 Route::post('/login','LoginController@login');                          /* 登录 */
 Route::get('/get_openid','LoginController@get_openid');                 /* 获取openid */
+Route::get('/auth','LoginController@auth');                             /* 回调授权 */
+Route::get('/wechat_openid/{code}','LoginController@wechat_openid');           /* 微信openid */
 
 Route::group(['middleware' => 'CheckToken'], function() {
 

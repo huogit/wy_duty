@@ -149,7 +149,6 @@ class DutyController extends Controller
             $duty_id = $duty->first()->id;
 
         // 值班时间已过，无法请假
-
         if ($this->isPastDue($week,$day,$time)) // 值班日期 < 当前日期
         {
             return $this->response(200,'值班时间已过，无法请假');
@@ -165,35 +164,37 @@ class DutyController extends Controller
         if(Leave::create($params)) {
             // 请假次数 + 1
             User::where('id',$user_id)->increment('leaves_count');
+            $wechat_openid = User::where('is_admin',1)->pluck('wechat_openid');
 
             // 发送审核提醒
             $tplMask = '审核提醒';
             $user = User::find($user_id);
             $real_name = $user->real_name;
-            $wechat_openid = $user->wechat_openid;
-            $data = [
-                "first" => [
-                    "value" => "你好，你有一个申请需要审核",
-                    "color" => "#173177"
-                ],
-                "keyword1" => [
-                    "value" => "请假",
-                    "color" => "#173177"
-                ],
-                "keyword2" => [
-                    "value" => $real_name,
-                    "color" => "#173177"
-                ],
-                "keyword3" => [
-                    "value" => date('Y-m-d H:i:s'),
-                    "color" => "#173177"
-                ],
-                "remark" => [
-                    "value" => "请尽快审核",
-                    "color" => "#173177"
-                ],
-            ];
-            $this->sendTplMessage($wechat_openid,$tplMask,$data,'index');
+            foreach ($wechat_openid as $openid) {
+                $data = [
+                    "first" => [
+                        "value" => "你好，你有一个申请需要审核",
+                        "color" => "#173177"
+                    ],
+                    "keyword1" => [
+                        "value" => "请假",
+                        "color" => "#173177"
+                    ],
+                    "keyword2" => [
+                        "value" => $real_name,
+                        "color" => "#173177"
+                    ],
+                    "keyword3" => [
+                        "value" => date('Y-m-d H:i:s'),
+                        "color" => "#173177"
+                    ],
+                    "remark" => [
+                        "value" => "请尽快审核",
+                        "color" => "#173177"
+                    ],
+                ];
+                $this->sendTplMessage($openid, $tplMask, $data, 'pages/examine/examine');
+            }
 
             return $this->response(201, '申请请假成功');
         }

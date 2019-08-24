@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\AddressBook;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\DB;
@@ -32,11 +33,10 @@ class UserController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'department' => 'numeric|max:3' ,
+            'department' => 'in:0,1,2,3' ,
             'class' => 'numeric',
-            'email' => 'email',
-            'phone' => 'regex:/^1[34578]\d{9}$/',
-            'major' => 'exists:majors,major'
+            //'phone' => 'regex:/^1[34578]\d{9}$/',
+            //'major' => 'exists:majors,major'
         ]);
 
         $user = request('jwt_user');
@@ -44,6 +44,7 @@ class UserController extends Controller
         $params = request(['department','class','major','email','phone','wechat_id']);
         $params = array_diff($params,[null]); // 过滤空的值，因为不一定更新所有的数据
         $user->update($params);
+        AddressBook::where("user_id",$user->openid)->update($params);
 
         return $this->response(200,'ok');
     }
