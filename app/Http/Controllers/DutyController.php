@@ -361,7 +361,7 @@ class DutyController extends Controller
         $condition = $type == 0 ? '=' : '!=';
         $data = [];
         $leaves = Leave::where('audit_status',$condition,0)->get();
-        $complements = Leave::where('complement_audit_status',$condition,0)->get();
+        $complements = Leave::where('complement_audit_status',$condition,0)->where('week','!=',null)->get();
         $noSigns = Duty::where('sign_time',null)->where('audit_status',$condition,0)->get();
 
         // 处理一下格式
@@ -498,7 +498,7 @@ class DutyController extends Controller
                         "color" => "#173177"
                     ],
                 ];
-                $this->sendTplMessage($leave->user->wechat_openid, '审核结果通知', $data);
+                $this->sendTplMessage($leave->user->wechat_openid, '审核结果通知', $data,'pages/schedule/schedule');
                 break;
             // 补班
             case 1:
@@ -577,43 +577,4 @@ class DutyController extends Controller
         return $this->response(200,'ok',$data);
     }
 
-    public function sendNoSign()
-    {
-        // 假期
-        $year = date('Y');
-        $data = $this->http_get("http://v.juhe.cn/calendar/year?year={$year}&key=355635c161094255ceb6cea0085c7792");
-        $data = json_decode($data,true);
-        $holiday_list = $data['result']['data']['holiday_list'];
-        if (in_array($this->nowDay(),[6,7]) || in_array(date('Y-n-j'),$holiday_list))
-            return;
-
-        // 没有签到
-        $week = $this->nowWeek();
-        $day = $this->nowDay();
-        $time = $this->nowTime();
-        $dutys = Duty::whereWdtp(compact('week','day','time'))->where('sign_time',null)->get();
-        print_r($dutys);
-        foreach ($dutys as $duty) {
-            $openid = $duty->user->wechat_openid;
-            $data = [
-                "first" => [
-                    "value" => "还没有打考勤",
-                    "color" => "#173177"
-                ],
-                "keyword1" => [
-                    "value" => "你",
-                    "color" => "#173177"
-                ],
-                "keyword2" => [
-                    "value" => '签到',
-                    "color" => "#173177"
-                ],
-                "remark" => [
-                    "value" => "请及时进行考勤",
-                    "color" => "#173177"
-                ],
-            ];
-            $this->sendTplMessage($openid, '考勤提醒', $data);
-        }
-    }
 }
