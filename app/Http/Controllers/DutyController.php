@@ -518,7 +518,7 @@ class DutyController extends Controller
 
             if ($duty->sign_time != null){ // 已签到
                 $status = 1;
-            }elseif($duty->leave != null && $duty->leave->audit_status = 1){ // 已请假
+            }elseif($duty->leave != null && $duty->leave->audit_status == 1){ // 已请假
                 $status = 2;
             }elseif($this->isPastDue($week,$day,$duty->time) && $duty->sign_time == null) { // 未签到
                 $status = 3;
