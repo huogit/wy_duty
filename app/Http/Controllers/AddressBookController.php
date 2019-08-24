@@ -15,7 +15,7 @@ class AddressBookController extends Controller
      */
     public function list()
     {
-        $addressBooks = AddressBook::select('id','class','real_name','phone')->orderBy('class','desc')->orderBy('department');
+        $addressBooks = AddressBook::select('id','class','real_name','phone','username','is_admin','remark','department')->orderBy('class','desc')->orderBy('department');
         $count = $addressBooks->count();
         $addressBooks = $addressBooks->get();
         $data = compact('count','addressBooks');
