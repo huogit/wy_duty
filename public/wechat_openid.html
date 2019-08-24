@@ -1,0 +1,20 @@
+<span></span>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+
+<script type="text/javascript">
+	function getUrlParam(name) {   
+         var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+         var r = window.location.search.substr(1).match(reg);  
+         if (r != null) return unescape(r[2]); return null;
+  }
+  if (getUrlParam('code') === null) {
+		  window.location.href="https://duty.wangyuan.info/api/auth";
+	}else{
+		var code = getUrlParam('code');
+    $.get("https://duty.wangyuan.info/api/wechat_openid/" + code,function(result){
+        var data = JSON.parse(result);
+      	var data = JSON.parse(data.data);
+      	$("span").html(data.data.id);
+    });
+	}
+</script>   
