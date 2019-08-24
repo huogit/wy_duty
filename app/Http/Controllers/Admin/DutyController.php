@@ -299,10 +299,11 @@ class DutyController extends \App\Http\Controllers\Controller
 
         if (isset($adds))
         {
-            foreach ($adds as $add) 
+            foreach ($adds as $add)
             {
                 // 判断是否已存在此排班
-                $count = Duty::where('openid',$add['openid'])
+                $user_id = User::where('openid',$add['openid'])->first()->id;
+                $count = Duty::where('user_id',$user_id)
                     ->whereIn('week',[$week,$week + 1])
                     ->where('day',$add['day'])
                     ->whereIn('place',[0,1])
@@ -316,7 +317,7 @@ class DutyController extends \App\Http\Controllers\Controller
                 for($i = $week; $i <= 20; $i++)
                 {
                     Duty::create([
-                        'openid' => $add['openid'],
+                        'user_id' => $user_id,
                         'week' => $i,
                         'day' => $add['day'],
                         'place' => $add['place'],
@@ -328,9 +329,10 @@ class DutyController extends \App\Http\Controllers\Controller
 
         if (isset($deletes))
         {
-            foreach ($deletes as $delete) 
+            foreach ($deletes as $delete)
             {
-                Duty::where('openid',$delete['openid'])
+                $user_id = User::where('openid',$add['openid'])->first()->id;
+                Duty::where('user_id',$user_id)
                     ->where('day',$delete['day'])
                     ->where('place',$delete['place'])
                     ->where('time',$delete['time'])
