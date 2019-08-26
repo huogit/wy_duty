@@ -16,19 +16,17 @@ class CheckToken
      */
     public function handle($request, Closure $next)
     {
-//        $response = new \App\Http\Controllers\Controller;
-//        try{
-//            if (!JWTAuth::parseToken()->check())
-//                exit($response->response(403,'token无效'));
-//        }catch(\Exception $e)
-//        {
-//            exit($response->response(403,'token无效'));
-//        }
-//
-//        $user = JWTAuth::parseToken()->toUser();
-//        $request->offsetSet('jwt_user',$user);
+        $response = new \App\Http\Controllers\Controller;
+        try{
+            if (!JWTAuth::parseToken()->check())
+                exit($response->response(403,'token无效'));
+        }catch(\Exception $e)
+        {
+            exit($response->response(403,'token无效'));
+        }
 
-        $request->offsetSet('jwt_user',\App\User::find(6));
+        $user = JWTAuth::parseToken()->toUser();
+        $request->offsetSet('jwt_user',$user);
 
         return $next($request);
     }
