@@ -184,13 +184,11 @@ class DutyController extends \App\Http\Controllers\Controller
      */
     public function apply_detail(Request $request)
     {
-        # 验证
         $request->validate([
             'id' => 'required',
             'type' => 'required|in:0,1'
         ]);
 
-        # 获取参数
         $id = request('id');
         $type = request('type');
 

@@ -464,7 +464,7 @@ class DutyController extends Controller
         
         $id = request('id');
         $type = request('type');
-        $audit_status = request('dispose');
+        $audit_status = (int)request('dispose');
         $audit_time = date('Y-m-d H:i:s');
         $auditor_id =  (request('jwt_user'))->id;;
 
