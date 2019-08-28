@@ -103,11 +103,11 @@ class DutyController extends \App\Http\Controllers\Controller
         $end = request('end');
         $end = date("Y-m-d",strtotime("+1 day",strtotime($end)));
 
-        $records = Duty::whereBetween('sign_time',[$start,$end])
-            ->select('day','place','time')->selectRaw('sign_time as created_at');
+        $records = Duty::whereBetween('sign_time',[$start,$end])->with('user:id,real_name')
+            ->select('user_id','day','place','time')->selectRaw('sign_time as created_at');
 
-        $records = Leave::whereBetween('sign_time',[$start,$end])
-            ->select('day','place','time')->selectRaw('sign_time as created_at')
+        $records = Leave::whereBetween('sign_time',[$start,$end])->with('user:id,real_name')
+            ->select('user_id','day','place','time')->selectRaw('sign_time as created_at')
             ->union($records)->orderBy('created_at')->orderBy('place')//->orderBy('date(created_at) DESC')
             ->paginate(10);
 
