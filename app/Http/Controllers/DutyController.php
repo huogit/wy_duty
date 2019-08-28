@@ -238,7 +238,7 @@ class DutyController extends Controller
 
         // 添加补班信息
         $leave->update($params);
-        User::find($user_id)->increment('complements_count');
+
         return $this->response(201, '申请补班成功');
     }
 
@@ -322,8 +322,6 @@ class DutyController extends Controller
             // 删除请假申请
             if ($leave->delete()) {
                 $user = User::find($user_id);
-                if (!empty($leave->week))
-                    $user->decrement('complements_count');
                 $user->decrement('leaves_count');
                 return $this->response(200, '取消成功');
             }
