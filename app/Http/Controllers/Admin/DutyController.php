@@ -166,11 +166,11 @@ class DutyController extends \App\Http\Controllers\Controller
             ->selectRaw("0 as type")->get()->toArray();
 
         $applies = array_merge($applies,$complements);
-        foreach ($applies as $apply){
-            if ($apply['audit_status'] == 2) {
-                $apply['duty_status'] = 2;
+        foreach ($applies as $key => $apply){
+            if ($applies[$key]['audit_status'] == 2) {
+                $applies[$key]['duty_status'] = 2;
             }else{
-                $apply['duty_status'] = $apply['sign_time'] == null ? 0 : 1;
+                $applies[$key]['duty_status'] = $applies[$key]['sign_time'] == null ? 0 : 1;
             }
         }
         $data = collect($applies)->sortBy('created_at');
