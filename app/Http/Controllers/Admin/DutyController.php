@@ -158,22 +158,25 @@ class DutyController extends \App\Http\Controllers\Controller
             ->selectRaw('complement_created_at as created_at')
             ->where('week','!=',null)->whereBetween('complement_created_at',[$start,$end])
             ->with('user:id,real_name')->with('auditor:id,real_name')
-            ->selectRaw("1 as type");
+            ->selectRaw("1 as type")->get()->toArray();
         
         $applies = Leave::select('user_id','auditor_id','id','created_at','audit_time','sign_time','audit_status')
-            ->with('user:id,real_name')->with('auditor:id,real_name')
             ->whereBetween('created_at',[$start,$end])
-            ->selectRaw("0 as type")->union($complements)->orderBy('type','desc')->paginate(10);
+            ->with('user:id,real_name')->with('auditor:id,real_name')
+            ->selectRaw("0 as type")->get()->toArray();
 
+        $applies = collect(array_merge($applies,$complements));
         foreach ($applies as $apply){
-            if ($apply->audit_status == 2) {
-                $apply->duty_status = 2;
+            if ($apply['audit_status'] == 2) {
+                $apply['duty_status'] = 2;
             }else{
-                $apply->duty_status = $apply->sign_time == null ? 0 : 1;
+                $apply['duty_status'] = ($apply['sign_time'] == null ? 0 : 1);
             }
         }
+        $data = $applies->sortBy('created_at');
 
-        return $this->response(200,'ok',$applies);
+
+        return $this->response(200,'ok',$data);
     }
 
 
