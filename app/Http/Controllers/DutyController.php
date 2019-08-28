@@ -218,6 +218,7 @@ class DutyController extends Controller
 
         $user_id = (request('jwt_user'))->id;
         $params = request(['week','day','time','place']);
+        $params['complement_created_at'] = date('Y-m-d H:i:s');
 
         // 没有请假 或者 文秘小姐姐没有审核 或者 文秘小姐姐审核不通过
         $leaves = Leave::where('user_id',$user_id)->where('sign_time',null)->where('audit_status',1);
@@ -464,7 +465,7 @@ class DutyController extends Controller
         
         $id = request('id');
         $type = request('type');
-        $audit_status = (int)request('dispose');
+        $audit_status = request('dispose');
         $audit_time = date('Y-m-d H:i:s');
         $auditor_id =  (request('jwt_user'))->id;;
 

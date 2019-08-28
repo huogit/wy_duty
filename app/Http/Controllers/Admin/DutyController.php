@@ -162,7 +162,7 @@ class DutyController extends \App\Http\Controllers\Controller
         $applies = Leave::select('user_id','auditor_id','id','created_at','audit_time','sign_time','audit_status')
             ->with('user:id,real_name')->with('auditor:id,real_name')
             ->whereBetween('created_at',[$start,$end])
-            ->selectRaw("0 as type")->union($complements)->orderBy('created_at','desc')->paginate(10);
+            ->selectRaw("0 as type")->union($complements)->orderBy('type','desc')->paginate(10);
 
         foreach ($applies as $apply){
             if ($apply->audit_status == 2) {
