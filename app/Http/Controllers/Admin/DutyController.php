@@ -139,6 +139,7 @@ class DutyController extends \App\Http\Controllers\Controller
 
     /**
      * 申请记录
+     *
      * @return string
     */
     public function apply_records(Request $request)
