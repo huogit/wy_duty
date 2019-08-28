@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fa649e2e-6a9a-45ae-940a-a1ddc97805df" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/DutyController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/DutyController.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -91,8 +90,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/Http/Controllers/Admin/DutyController.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="496">
-              <caret line="105" column="91" selection-start-line="93" selection-end-line="115" />
+            <state relative-caret-position="517">
+              <caret line="167" column="42" lean-forward="true" selection-start-line="167" selection-start-column="42" selection-end-line="167" selection-end-column="42" />
               <folding>
                 <element signature="e#126#163#0#PHP" expanded="true" />
               </folding>
@@ -125,7 +124,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>my</find>
       <find>count</find>
       <find>=</find>
       <find>formatValidationErrors</find>
@@ -155,6 +153,7 @@
       <find>audit</find>
       <find>申请</find>
       <find>me</find>
+      <find>记录</find>
     </findStrings>
     <replaceStrings>
       <replace>DutyC</replace>
@@ -455,12 +454,12 @@
       <workItem from="1551250378981" duration="598000" />
       <workItem from="1566793124190" duration="264000" />
       <workItem from="1566793738118" duration="27000" />
-      <workItem from="1566969388834" duration="261000" />
+      <workItem from="1566969388834" duration="1017000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="229487000" />
+    <option name="totallyTimeSpent" value="230243000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
@@ -743,8 +742,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/Http/Controllers/Admin/DutyController.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="496">
-          <caret line="105" column="91" selection-start-line="93" selection-end-line="115" />
+        <state relative-caret-position="517">
+          <caret line="167" column="42" lean-forward="true" selection-start-line="167" selection-start-column="42" selection-end-line="167" selection-end-column="42" />
           <folding>
             <element signature="e#126#163#0#PHP" expanded="true" />
           </folding>

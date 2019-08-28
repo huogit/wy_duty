@@ -143,14 +143,12 @@ class DutyController extends \App\Http\Controllers\Controller
     */
     public function apply_records(Request $request)
     {
-        # 验证
         $request->validate([
             'start' => 'required|date',
             'end' => 'required|date',
             'page' => 'required|numeric'
         ]);
 
-        # 获取参数
         $start = request('start');
         $end = request('end');
         $end = date("Y-m-d",strtotime("+1 day",strtotime($end))); // end 加+1天，因为传过来的日期是指今天0点，但是需要的是今天24点，即明天的0点
@@ -167,7 +165,11 @@ class DutyController extends \App\Http\Controllers\Controller
             ->selectRaw("0 as type")->union($complements)->orderBy('created_at','desc')->paginate(10);
 
         foreach ($applies as $apply){
-            $apply->duty_status = $apply->sign_time == null ? 0 : 1;
+            if ($apply->audit_status == 2) {
+                $apply->duty_status = 2;
+            }else{
+                $apply->duty_status = $apply->sign_time == null ? 0 : 1;
+            }
         }
 
         return $this->response(200,'ok',$applies);
