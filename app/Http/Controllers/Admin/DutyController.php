@@ -153,13 +153,13 @@ class DutyController extends \App\Http\Controllers\Controller
         $end = request('end');
         $end = date("Y-m-d",strtotime("+1 day",strtotime($end))); // end 加+1天，因为传过来的日期是指今天0点，但是需要的是今天24点，即明天的0点
 
-        $complements = Leave::select('user_id','auditor_id','id','audit_time','sign_time')
+        $complements = Leave::select('user_id','auditor_id','id','audit_time','sign_time','audit_status')
             ->selectRaw('complement_created_at as created_at')
             ->where('week','!=',null)->whereBetween('complement_created_at',[$start,$end])
             ->with('user:id,real_name')->with('auditor:id,real_name')
             ->selectRaw("1 as type");
         
-        $applies = Leave::select('user_id','auditor_id','id','created_at','audit_time','sign_time')
+        $applies = Leave::select('user_id','auditor_id','id','created_at','audit_time','sign_time','audit_status')
             ->with('user:id,real_name')->with('auditor:id,real_name')
             ->whereBetween('created_at',[$start,$end])
             ->selectRaw("0 as type")->union($complements)->orderBy('created_at','desc')->paginate(10);
