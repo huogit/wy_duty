@@ -219,6 +219,7 @@ class DutyController extends Controller
         $user_id = (request('jwt_user'))->id;
         $params = request(['week','day','time','place']);
         $params['complement_created_at'] = date('Y-m-d H:i:s');
+        $params['complement_audit_status'] = 1;
 
         // 没有请假 或者 文秘小姐姐没有审核 或者 文秘小姐姐审核不通过
         $leaves = Leave::where('user_id',$user_id)->where('sign_time',null)->where('audit_status',1);
@@ -237,6 +238,7 @@ class DutyController extends Controller
             return $this->response(409, '补班已存在，请不要重复操作');
 
         // 添加补班信息
+        $params['complement_auditor_id'] = $leave->auditor_id;
         $leave->update($params);
 
         return $this->response(201, '申请补班成功');
@@ -404,7 +406,7 @@ class DutyController extends Controller
                     'created_at' => $complement->complement_created_at,
                     'audit_time' => $complement->complement_audit_time,
                     'audit_status' => $complement->complement_audit_status,
-                    'auditor_name' => $complement->complement_auditor->real_name,
+                    'auditor_name' => $complements->auditor->real_name,//$complement->complement_auditor->real_name,
                     'type' => 1
                 ];
 
