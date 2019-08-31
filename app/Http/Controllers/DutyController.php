@@ -340,7 +340,7 @@ class DutyController extends Controller
 
             // 删除补班
             $complement->update(['week'=>null,'day'=>null,'time'=>null,'place'=>null]);
-            User::find($user_id)->decrement('complements_count');
+//            User::find($user_id)->decrement('complements_count');
 
             return $this->response(200,'取消成功');
         }
@@ -406,7 +406,7 @@ class DutyController extends Controller
                     'created_at' => $complement->complement_created_at,
                     'audit_time' => $complement->complement_audit_time,
                     'audit_status' => $complement->complement_audit_status,
-                    'auditor_name' => $complements->auditor->real_name,//$complement->complement_auditor->real_name,
+                    'auditor_name' => $complement->auditor->real_name,//$complement->complement_auditor->real_name,
                     'type' => 1
                 ];
 

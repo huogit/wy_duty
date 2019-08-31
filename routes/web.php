@@ -11,6 +11,8 @@
 |
 */
 
+// 后台
+
 // 登录模块
 Route::post('/admin/login','Admin\LoginController@login');
 Route::get('/admin/logout','Admin\LoginController@logout');

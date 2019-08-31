@@ -76,7 +76,7 @@ class DutyController extends \App\Http\Controllers\Controller
     public function index()
     {
         $current_week = $this->nowWeek();
-        $users = User::where('status',1)->select('real_name');
+        $users = User::select('real_name');
 
         $count = $users->count();
         $users= $users->get();
@@ -251,14 +251,12 @@ class DutyController extends \App\Http\Controllers\Controller
      */
     public function member(Request $request)
     {
-        # 验证
         $request->validate([
             'day' => 'required|integer|between:1,5',
             'place' => 'required|in:0,1',
             'time' => 'required|in:0,1'
         ]);
 
-        # 获取参数
         $week = $this->nowWeek();
         $day = request('day');
         $place = request('place');
@@ -266,7 +264,7 @@ class DutyController extends \App\Http\Controllers\Controller
 
         $users = Duty::with('User:id,real_name,color')
             ->where('week',$week)->where('day',$day)->where('place',$place)->where('time',$time)
-            ->select('id','day','place','time')
+            ->select('id','user_id','day','place','time')
             ->get();
 
         return $this->response(200,'ok',$users);
