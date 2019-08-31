@@ -310,8 +310,11 @@ class DutyController extends Controller
         // 取消请假
         if ($type == 0)
         {
-            $leave = Leave::where('user_id',$user_id)->where('id',$id)->first();
-            $duty = $leave->duty;
+            $leave = Leave::where('user_id',$user_id)->where('id',$id);
+            if($leave->count())
+                $duty = $leave->first()->duty;
+            else
+                return $this->response(403,'不存在此id');
 
             // 值班时间已过,无法取消
             if ($this->isPastDue($duty->week,$duty->day,$duty->time))
@@ -332,7 +335,11 @@ class DutyController extends Controller
         // 取消补班
         if ($type == 1)
         {
-            $complement = Leave::where('user_id',$user_id)->where('id',$id)->where('sign_time',null)->first();
+            $complement = Leave::where('user_id',$user_id)->where('id',$id)->where('sign_time',null);
+            if($complement->count())
+                $complement = $complement->first();
+            else
+                return $this->response(403,'不存在此id');
 
             // 补班时间已过，无法取消
             if($this->isPastDue($complement->week,$complement->day,$complement->time))
