@@ -181,7 +181,7 @@ class DutyController extends \App\Http\Controllers\Controller
 
 
     /**
-     * 申請詳情
+     * 申请详情
      *
      * @param Request $request
      * @return false|string
@@ -206,12 +206,12 @@ class DutyController extends \App\Http\Controllers\Controller
             $data['place'] = $leave->duty->place;
             $data['time'] = $leave->duty->time;
 
-            $data['duty_stauts'] = $leave->sign_time == null ? 0 : 1;
+            $data['duty_status'] = $leave->sign_time == null ? 0 : 1;
         }else{
             $data = Leave::where('id',$id)->with('user:id,real_name,department')
                 ->select('user_id','week','day','time','place')->first();
 
-            $data->duty_stauts = $data->sign_time == null ? 0 : 1;
+            $data->duty_status = $data->sign_time == null ? 0 : 1;
         }
 
         return $this->response(200,'ok',$data);
