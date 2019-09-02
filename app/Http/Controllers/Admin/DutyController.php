@@ -291,9 +291,6 @@ class DutyController extends \App\Http\Controllers\Controller
             'update_at' => 'required|boolean',
         ]);
 
-        # 获取参数
-        $adds = request('add');
-        $deletes = request('delete');
         $update_at = request('update_at');
         $week = $this->nowWeek();
 
@@ -301,6 +298,7 @@ class DutyController extends \App\Http\Controllers\Controller
 
         if (isset($adds))
         {
+            $adds = request('add');
             foreach ($adds as $add)
             {
                 // 判断是否已存在此排班
@@ -331,6 +329,7 @@ class DutyController extends \App\Http\Controllers\Controller
 
         if (isset($deletes))
         {
+            $deletes = request('delete');
             foreach ($deletes as $delete)
             {
                 $user_id = User::where('openid',$add['openid'])->first()->id;
