@@ -333,7 +333,7 @@ class DutyController extends \App\Http\Controllers\Controller
         {
             foreach ($deletes as $delete)
             {
-                $user_id = User::where('openid',$add['openid'])->first()->id;
+                $user_id = User::where('openid',$delete['openid'])->first()->id;
                 Duty::where('user_id',$user_id)
                     ->where('day',$delete['day'])
                     ->where('place',$delete['place'])
