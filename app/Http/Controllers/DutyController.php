@@ -317,7 +317,7 @@ class DutyController extends Controller
                 return $this->response(403,'不存在此id');
 
             // 值班时间已过,无法取消
-            if ($this->isPastDue($duty['week'],$duty['day'],$duty['time'])
+            if ($this->isPastDue($duty['week'],$duty['day'],$duty['time']))
                 return $this->response(403,'值班时间已过，无法取消请假申请');
 
             // 文秘小姐姐已拒绝，无法取消
