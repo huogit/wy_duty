@@ -291,7 +291,9 @@ class DutyController extends \App\Http\Controllers\Controller
             'update_at' => 'required|boolean',
         ]);
 
-        $update_at = request('update_at');
+        $adds = $request->has('add') ? $request->input('add') : null;
+        $deletes = $request->has('delete') ? $request->input('delete') : null;
+        $update_at = $request->input('update_at');
         $week = $this->nowWeek();
 
         $week = $update_at == 0 ? $week : $week + 1; // 本周更新 ： 下周更新
@@ -329,7 +331,6 @@ class DutyController extends \App\Http\Controllers\Controller
 
         if (isset($deletes))
         {
-            $deletes = request('delete');
             foreach ($deletes as $delete)
             {
                 $user_id = User::where('openid',$add['openid'])->first()->id;
