@@ -300,7 +300,6 @@ class DutyController extends \App\Http\Controllers\Controller
 
         if (isset($adds))
         {
-            $adds = request('add');
             foreach ($adds as $add)
             {
                 // 判断是否已存在此排班
@@ -333,8 +332,7 @@ class DutyController extends \App\Http\Controllers\Controller
         {
             foreach ($deletes as $delete)
             {
-                $user_id = User::where('openid',$delete['openid'])->first()->id;
-                Duty::where('user_id',$user_id)
+                Duty::where('user_id',$delete['user_id'])
                     ->where('day',$delete['day'])
                     ->where('place',$delete['place'])
                     ->where('time',$delete['time'])
