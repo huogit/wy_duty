@@ -370,8 +370,8 @@ class DutyController extends Controller
         $condition = $type == 0 ? '=' : '!=';
         $data = [];
         $leaves = Leave::where('audit_status',$condition,0)->get();
-        $complements = Leave::where('complement_audit_status',$condition,0)->where('week','!=',null)->get();
-        $noSigns = Duty::where('sign_time',null)->where('audit_status',$condition,0)->get();
+        //$complements = Leave::where('complement_audit_status',$condition,0)->where('week','!=',null)->get();
+        $noSigns = Duty::doesntHave('leave')->where('sign_time',null)->where('audit_status',$condition,0)->get();
 
         // 处理一下格式
         if (count($leaves) > 0)
@@ -398,31 +398,31 @@ class DutyController extends Controller
             }
         }
 
-        if (count($complements) > 0)
-        {
-            foreach ($complements as $complement)
-            {
-                $arr = [
-                    'id' => $complement->id,
-                    'real_name' => $complement->user->real_name,
-                    'week' => $complement->week,
-                    'day' => $complement->day,
-                    'place' => $complement->place,
-                    'time' => $complement->time,
-                    'reason' => null,
-                    'created_at' => $complement->complement_created_at,
-                    'audit_time' => $complement->complement_audit_time,
-                    'audit_status' => $complement->complement_audit_status,
-                    'auditor_name' => $complement->auditor->real_name,//$complement->complement_auditor->real_name,
-                    'type' => 1
-                ];
-
-                if ($complement->complement_audit_status != 0)
-                    $arr = array_merge($arr,['auditor_name' => $complement->complement_auditor->real_name]);
-
-                array_push($data, $arr);
-            }
-        }
+//        if (count($complements) > 0)
+//        {
+//            foreach ($complements as $complement)
+//            {
+//                $arr = [
+//                    'id' => $complement->id,
+//                    'real_name' => $complement->user->real_name,
+//                    'week' => $complement->week,
+//                    'day' => $complement->day,
+//                    'place' => $complement->place,
+//                    'time' => $complement->time,
+//                    'reason' => null,
+//                    'created_at' => $complement->complement_created_at,
+//                    'audit_time' => $complement->complement_audit_time,
+//                    'audit_status' => $complement->complement_audit_status,
+//                    'auditor_name' => $complement->auditor->real_name,//$complement->complement_auditor->real_name,
+//                    'type' => 1
+//                ];
+//
+//                if ($complement->complement_audit_status != 0)
+//                    $arr = array_merge($arr,['auditor_name' => $complement->complement_auditor->real_name]);
+//
+//                array_push($data, $arr);
+//            }
+//        }
 
         if (count($noSigns) > 0)
         {

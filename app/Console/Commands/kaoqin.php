@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Duty;
 use App\Http\Controllers\Controller;
+use App\Leave;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
@@ -53,11 +54,16 @@ class kaoqin extends Command
         $week = $controller->nowWeek();
         $day = $controller->nowDay();
         $time = $controller->nowTime();
-        $dutys = Duty::whereWdtp(compact('week','day','time'))->where('sign_time',null)->get();
+
+        $dutys = Duty::whereWdtp(compact('week','day','time'))->doesntHave('leave')->where('sign_time',null)
+            ->select('user_id');
+        $noSgins = Leave::whereWdtp(compact('week','day','time'))->where('sign_time',null)
+            ->select('user_id')->union($dutys)->get();
+
         Log::info("week:{$week},day:{$day},time:{$time},有".count($dutys)."条未签到");
-        print_r($dutys);
-        foreach ($dutys as $duty) {
-            $openid = $duty->user->wechat_openid;
+
+        foreach ($noSgins as $noSgin) {
+            $openid = $noSgin->user->wechat_openid;
             $data = [
                 "first" => [
                     "value" => "还没有打考勤",
