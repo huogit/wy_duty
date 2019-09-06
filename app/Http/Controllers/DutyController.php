@@ -25,7 +25,7 @@ class DutyController extends Controller
         $id = (request('jwt_user'))->id;
 
         // 要值班
-        $duty = Duty::whereWdtp(compact('week','day','time'))->where('user_id',$id)->where('sign_time',null);
+        $duty = Duty::whereWdtp(compact('week','day','time'))->doesntHave('leave')->where('user_id',$id)->where('sign_time',null);
         if ($duty->count())
             return $this->response(200,'ok',['needToDuty' => true]);
 
