@@ -16,7 +16,7 @@ class DutyController extends Controller
      *
      * @return string
      */
-    public function needToSign()
+    public function nee。dToSign()
     {
         $week = $this->nowWeek();
         $day = $this->nowDay();
@@ -370,8 +370,8 @@ class DutyController extends Controller
         $condition = $type == 0 ? '=' : '!=';
         $data = [];
         $leaves = Leave::where('audit_status',$condition,0)->get();
-        //$complements = Leave::where('complement_audit_status',$condition,0)->where('week','!=',null)->get();
-        $noSigns = Duty::doesntHave('leave')->where('sign_time',null)->where('audit_status',$condition,0)->get();
+        $complements = Leave::where('complement_audit_status',$condition,0)->where('week','!=',null)->get();
+        //$noSigns = Duty::doesntHave('leave')->where('sign_time',null)->where('audit_status',$condition,0)->get();
 
         // 处理一下格式
         if (count($leaves) > 0)
@@ -398,57 +398,57 @@ class DutyController extends Controller
             }
         }
 
-//        if (count($complements) > 0)
-//        {
-//            foreach ($complements as $complement)
-//            {
-//                $arr = [
-//                    'id' => $complement->id,
-//                    'real_name' => $complement->user->real_name,
-//                    'week' => $complement->week,
-//                    'day' => $complement->day,
-//                    'place' => $complement->place,
-//                    'time' => $complement->time,
-//                    'reason' => null,
-//                    'created_at' => $complement->complement_created_at,
-//                    'audit_time' => $complement->complement_audit_time,
-//                    'audit_status' => $complement->complement_audit_status,
-//                    'auditor_name' => $complement->auditor->real_name,//$complement->complement_auditor->real_name,
-//                    'type' => 1
-//                ];
-//
-//                if ($complement->complement_audit_status != 0)
-//                    $arr = array_merge($arr,['auditor_name' => $complement->complement_auditor->real_name]);
-//
-//                array_push($data, $arr);
-//            }
-//        }
-
-        if (count($noSigns) > 0)
+        if (count($complements) > 0)
         {
-            foreach ($noSigns as $noSign)
+            foreach ($complements as $complement)
             {
-                if (!$this->isPastDue($noSign->week,$noSign->day,$noSign->time)) // 超过值班日期时间的才是未签到
-                    continue;
                 $arr = [
-                    'id' => $noSign->id,
-                    'real_name' => $noSign->user->real_name,
-                    'week' => $noSign->week,
-                    'day' => $noSign->day,
-                    'place' => $noSign->place,
-                    'time' => $noSign->time,
+                    'id' => $complement->id,
+                    'real_name' => $complement->user->real_name,
+                    'week' => $complement->week,
+                    'day' => $complement->day,
+                    'place' => $complement->place,
+                    'time' => $complement->time,
                     'reason' => null,
-                    'created_at' => $this->duty_dateTime($noSign->week,$noSign->day,$noSign->time),
-                    'audit_time' => $noSign->audit_time,
-                    'audit_status' => $noSign->audit_status,
-                    'type' => 2
+                    'created_at' => $complement->complement_created_at,
+                    'audit_time' => $complement->complement_audit_time,
+                    'audit_status' => $complement->complement_audit_status,
+                    'auditor_name' => $complement->auditor->real_name,//$complement->complement_auditor->real_name,
+                    'type' => 1
                 ];
-                if ($noSign->audit_status != 0)
-                    $arr = array_merge($arr,['auditor_name' => $noSign->auditor->real_name]);
+
+                if ($complement->complement_audit_status != 0)
+                    $arr = array_merge($arr,['auditor_name' => $complement->complement_auditor->real_name]);
 
                 array_push($data, $arr);
             }
         }
+
+//        if (count($noSigns) > 0)
+//        {
+//            foreach ($noSigns as $noSign)
+//            {
+//                if (!$this->isPastDue($noSign->week,$noSign->day,$noSign->time)) // 超过值班日期时间的才是未签到
+//                    continue;
+//                $arr = [
+//                    'id' => $noSign->id,
+//                    'real_name' => $noSign->user->real_name,
+//                    'week' => $noSign->week,
+//                    'day' => $noSign->day,
+//                    'place' => $noSign->place,
+//                    'time' => $noSign->time,
+//                    'reason' => null,
+//                    'created_at' => $this->duty_dateTime($noSign->week,$noSign->day,$noSign->time),
+//                    'audit_time' => $noSign->audit_time,
+//                    'audit_status' => $noSign->audit_status,
+//                    'type' => 2
+//                ];
+//                if ($noSign->audit_status != 0)
+//                    $arr = array_merge($arr,['auditor_name' => $noSign->auditor->real_name]);
+//
+//                array_push($data, $arr);
+//            }
+//        }
 
         $data = collect($data)->sortByDesc('created_at')->toArray(); // 排序
         $data = array_values($data); // 去掉键名
