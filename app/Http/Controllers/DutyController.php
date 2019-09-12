@@ -246,7 +246,7 @@ class DutyController extends Controller
 
     /**
      * 我的申请
-     * 
+     *
      * @return string
      */
     public function my_apply()
@@ -469,7 +469,7 @@ class DutyController extends Controller
             'type' =>  'required|in:0,1,2',
             'dispose' => 'required|in:0,1,2,3',
         ]);
-        
+
         $id = request('id');
         $type = request('type');
         $audit_status = request('dispose');
@@ -585,10 +585,17 @@ class DutyController extends Controller
 
         return $this->response(200,'ok',$data);
     }
-    
-    public function leaveAndComplement()
-    {
 
+    /**
+     * 请补次数统计
+     *
+     * @return false|string
+     */
+    public function getAllLeaveCount()
+    {
+        $data = User::withCount('leaves')->withCount('complements')
+            ->select('real_name','complements_count','leaves_count')->get();
+        return $this->response(200,'ok',$data);
     }
 
 }

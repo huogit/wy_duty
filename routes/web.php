@@ -32,9 +32,10 @@ Route::group(['middleware' => 'auth:admin'], function() {
     Route::post('/admin/duty/check', 'Admin\DutyController@check');            /* 添加未签到记录 */
 
     // 申请模块
-    Route::get('/admin/duty/apply/records', 'Admin\DutyController@apply_records');    /* 申请记录 */
-    Route::get('/admin/duty/apply', 'Admin\DutyController@apply_detail');             /* 申请详情 */
-    Route::delete('/admin/duty/apply/delete', 'Admin\DutyController@apply_delete');   /* 删除申请 */
+    Route::get('/admin/duty/apply/records', 'Admin\DutyController@apply_records');            /* 申请记录 */
+    Route::get('/admin/duty/apply', 'Admin\DutyController@apply_detail');                     /* 申请详情 */
+    Route::delete('/admin/duty/apply/delete', 'Admin\DutyController@apply_delete');           /* 删除申请 */
+    Route::get('/admin/duty/apply/getAllLeaveCount','Admin\DutyController@getAllLeaveCount'); /* 请补次数 */
 
     // 用户模块
     Route::get('/admin/user/list', 'Admin\UserController@list');                     /* 用户列表 */

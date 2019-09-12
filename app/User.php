@@ -24,16 +24,22 @@ class User extends Authenticatable implements JWTSubject
     }
 
 
-    // 用户的值班申请
-    public function duty()
+    // 用户的值班
+    public function dutys()
     {
         return $this->hasMany('App\Duty','user_id','id');
     }
 
-    // 用户的补班申请
-    public function complement()
+    // 用户的值班申请
+    public function leaves()
     {
         return $this->hasMany('App\Leave','user_id','id');
+    }
+
+    // 用户的补班申请
+    public function complements()
+    {
+        return $this->hasMany('App\Leave','user_id','id')->where('week','!=',null);
     }
 
 }
