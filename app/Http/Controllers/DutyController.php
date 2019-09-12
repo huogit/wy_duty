@@ -16,7 +16,7 @@ class DutyController extends Controller
      *
      * @return string
      */
-    public function nee。dToSign()
+    public function needToSign()
     {
         $week = $this->nowWeek();
         $day = $this->nowDay();
@@ -584,6 +584,11 @@ class DutyController extends Controller
         $data = $data->values()->all();
 
         return $this->response(200,'ok',$data);
+    }
+    
+    public function leaveAndComplement()
+    {
+
     }
 
 }
