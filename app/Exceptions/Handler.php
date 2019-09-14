@@ -46,7 +46,6 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
-	 file_get_contents('http://api.lizhen123.cn/serverChan.php?title=服务器500错误&content='.$exception);
         return parent::render($request, $exception);
     }
 }
