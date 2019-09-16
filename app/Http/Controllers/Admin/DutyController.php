@@ -351,8 +351,12 @@ class DutyController extends \App\Http\Controllers\Controller
      */
     public function getAllLeaveCount()
     {
+        $year = date('Y');
+        $start = date('m') >= 9 ? $year - 2 : $year - 3;
+
         $data = User::withCount('leaves')->withCount('complements')
-            ->select('real_name','complements_count','leaves_count')->get();
+            ->select('real_name','complements_count','leaves_count')
+            ->whereBetween('class',[$start,$year])->get();
         return $this->response(200,'ok',$data);
     }
 }
