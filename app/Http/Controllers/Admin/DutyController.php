@@ -343,4 +343,16 @@ class DutyController extends \App\Http\Controllers\Controller
 
         return $this->response(200,'ok');
     }
+
+    /**
+     * 请补次数统计
+     *
+     * @return false|string
+     */
+    public function getAllLeaveCount()
+    {
+        $data = User::withCount('leaves')->withCount('complements')
+            ->select('real_name','complements_count','leaves_count')->get();
+        return $this->response(200,'ok',$data);
+    }
 }
