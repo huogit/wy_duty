@@ -48,9 +48,6 @@ class  LoginController extends Controller
             return $this->response(400,'微信服务器返回的错误',$data);
     }
 
-
-    // TODO 登录时传信息
-
     /**
      * 登录
      *
@@ -64,7 +61,6 @@ class  LoginController extends Controller
         ]);
 
         $code = request('code');
-        //$info = request(['gender','nickName','city','provinces','country','avatarUrl']);
         $url = 'https://api.weixin.qq.com/sns/jscode2session?appid='.env('WECHAT_MINI_PROGRAM_APPID').'&secret='.env('WECHAT_MINI_PROGRAM_SECRET').'&js_code='.$code.'&grant_type=authorization_code';
 
         // 获取openid
@@ -82,9 +78,6 @@ class  LoginController extends Controller
             $token = JWTAuth::fromUser($user->first());
         else
             return $this->response(403,'非网园人,无权限',compact('openid'));
-
-        // 更新用户信息
-        //$user->update($info);
 
         return $this->response(200,'ok',compact('token'));
     }

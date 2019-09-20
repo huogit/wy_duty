@@ -298,6 +298,19 @@ class DutyController extends \App\Http\Controllers\Controller
 
         $week = $update_at == 0 ? $week : $week + 1; // 本周更新 ： 下周更新
 
+        if (isset($deletes))
+        {
+            foreach ($deletes as $delete)
+            {
+                Duty::where('user_id',$delete['user_id'])
+                    ->where('day',$delete['day'])
+                    ->where('place',$delete['place'])
+                    ->where('time',$delete['time'])
+                    ->where('week','>=',$week)
+                    ->delete();
+            }
+        }
+
         if (isset($adds))
         {
             foreach ($adds as $add)
@@ -325,19 +338,6 @@ class DutyController extends \App\Http\Controllers\Controller
                         'time' => $add['time'],
                     ]);
                 }
-            }
-        }
-
-        if (isset($deletes))
-        {
-            foreach ($deletes as $delete)
-            {
-                Duty::where('user_id',$delete['user_id'])
-                    ->where('day',$delete['day'])
-                    ->where('place',$delete['place'])
-                    ->where('time',$delete['time'])
-                    ->where('week','>=',$week)
-                    ->delete();
             }
         }
 
