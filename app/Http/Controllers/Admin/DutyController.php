@@ -307,6 +307,7 @@ class DutyController extends \App\Http\Controllers\Controller
                     ->where('place',$delete['place'])
                     ->where('time',$delete['time'])
                     ->where('week','>=',$week)
+                    ->whereDoesntHave('leave')  // 已经请假的duty就不能删除，不然影响到其它数据
                     ->delete();
             }
         }
