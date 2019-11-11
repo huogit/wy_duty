@@ -46,8 +46,6 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
-        $error = $exception->getMessage()." in ".$exception->getFile().$exception->getLine();
-        file_get_contents("http://api.lizhen123.cn/serverChan.php?title=值班表500&content={$error}");
         return parent::render($request, $exception);
     }
 }
