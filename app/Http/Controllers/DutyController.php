@@ -222,7 +222,7 @@ class DutyController extends Controller
         $params['complement_audit_status'] = 1;
 
         // 没有请假 或者 文秘小姐姐没有审核 或者 文秘小姐姐审核不通过
-        $leaves = Leave::where('user_id',$user_id)->where('sign_time',null)->where('audit_status',1);
+        $leaves = Leave::where('user_id',$user_id)->where('sign_time',null)->where('week',null)->where('audit_status',1);
         if ($leaves->count() == 0)
             return $this->response(403, '没有请假或者文秘小姐姐审核不通过，无法申请补班');
 
