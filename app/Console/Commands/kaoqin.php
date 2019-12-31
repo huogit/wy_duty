@@ -47,7 +47,7 @@ class kaoqin extends Command
         $data = $controller->http_get("http://v.juhe.cn/calendar/year?year={$year}&key=355635c161094255ceb6cea0085c7792");
         $data = json_decode($data,true);
         $holiday_list = $data['result']['data']['holiday_list'];
-        if (in_array($controller->nowDay(),[6,7]) || in_array(date('Y-n-j'),$holiday_list))
+        if (in_array($controller->nowDay(),[6,7]) || in_array(date('Y-n-j'),$holiday_list) || $controller->nowWeek() > 17)
             return;
 
         // 没有签到
