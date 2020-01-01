@@ -15,7 +15,7 @@
 
 // 登录模块
 Route::post('/admin/login','Admin\LoginController@login');
-Route::get('/admin/logout','Admin\LoginController@logout');
+Route::post('/admin/logout','Admin\LoginController@logout');
 
 // 首页模块（大家都可以进）
 Route::get('/admin/start', 'Admin\DutyController@start');                     /* 首页 */
