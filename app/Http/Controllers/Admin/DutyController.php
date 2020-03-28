@@ -34,8 +34,6 @@ class DutyController extends \App\Http\Controllers\Controller
    }
 
 
-   // TODO 存到缓存
-
     /**
      * 更改首页样式
      *

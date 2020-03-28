@@ -9,6 +9,7 @@ use App\Utilities\WYWeChatSDK;
 
 class  LoginController extends Controller
 {
+    // 以下两个方法用于获取微信公众号的openid，这样才可以用微信公众号推送
     public function auth()
     {
         $sdk = new WYWeChatSDK();

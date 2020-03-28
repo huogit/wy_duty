@@ -21,7 +21,7 @@ Route::post('/admin/logout','Admin\LoginController@logout');
 Route::get('/admin/start', 'Admin\DutyController@start');                     /* 首页 */
 Route::post('/admin/start/change', 'Admin\DutyController@start_change');      /* 更改首页 */
 
-Route::group(['middleware' => 'auth:admin'], function() {
+Route::group(['prefix'=>'api','middleware' => 'auth:admin'], function() {
 
     // 值班模块
     Route::get('/admin/duty', 'Admin\DutyController@index');                    /* 排班管理页 */
