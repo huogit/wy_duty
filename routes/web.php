@@ -14,12 +14,12 @@
 // 后台
 
 // 登录模块
-Route::post('/admin/login','Admin\LoginController@login');
-Route::post('/admin/logout','Admin\LoginController@logout');
+Route::post('/api/admin/login','Admin\LoginController@login');
+Route::post('/api/admin/logout','Admin\LoginController@logout');
 
 // 首页模块（大家都可以进）
-Route::get('/admin/start', 'Admin\DutyController@start');                     /* 首页 */
-Route::post('/admin/start/change', 'Admin\DutyController@start_change');      /* 更改首页 */
+Route::get('/api/admin/start', 'Admin\DutyController@start');                     /* 首页 */
+Route::post('/api/admin/start/change', 'Admin\DutyController@start_change');      /* 更改首页 */
 
 Route::group(['prefix'=>'api','middleware' => 'auth:admin'], function() {
 
