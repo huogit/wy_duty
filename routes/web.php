@@ -13,15 +13,13 @@
 
 // 后台
 
-// 登录模块
-Route::post('/api/admin/login','Admin\LoginController@login');
-Route::post('/api/admin/logout','Admin\LoginController@logout');
+// 会话模块
+Route::post('/admin/login','Admin\LoginController@login');
 
-// 首页模块（大家都可以进）
-Route::get('/api/admin/start', 'Admin\DutyController@start');                     /* 首页 */
-Route::post('/api/admin/start/change', 'Admin\DutyController@start_change');      /* 更改首页 */
-
-Route::group(['prefix'=>'api','middleware' => 'auth:admin'], function() {
+Route::group(['middleware' => 'auth:admin'], function() {
+    // 首页模块
+    Route::get('/admin/start', 'Admin\DutyController@start');                     /* 首页 */
+    Route::post('/admin/start/change', 'Admin\DutyController@start_change');      /* 更改首页 */
 
     // 值班模块
     Route::get('/admin/duty', 'Admin\DutyController@index');                    /* 排班管理页 */
@@ -53,5 +51,7 @@ Route::group(['prefix'=>'api','middleware' => 'auth:admin'], function() {
     Route::get('/admin/address_book/search', 'Admin\AddressBookController@search');      /* 搜索联系人 */
     Route::delete('/admin/address_book/delete', 'Admin\AddressBookController@delete');   /* 删除联系人 */
     Route::post('/admin/address_book/import', 'Admin\AddressBookController@import');     /* 批量导入 */
+
+    Route::post('/api/admin/logout','Admin\LoginController@logout');
 });
 
