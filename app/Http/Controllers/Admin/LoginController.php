@@ -39,7 +39,6 @@ class LoginController extends \App\Http\Controllers\Controller
      */
     public function logout(Request $request)
     {
-        // 可能是因为用的不是自带的Auth，就获取不到用户，清不掉session
         $request->session()->flush();
 
         return $this->response(200,'退出登录成功');

@@ -15,7 +15,6 @@
 
 // 会话模块
 Route::post('/admin/login','Admin\LoginController@login');
-
 Route::group(['middleware' => 'auth:admin'], function() {
     // 首页模块
     Route::get('/admin/start', 'Admin\DutyController@start');                     /* 首页 */
@@ -52,6 +51,8 @@ Route::group(['middleware' => 'auth:admin'], function() {
     Route::delete('/admin/address_book/delete', 'Admin\AddressBookController@delete');   /* 删除联系人 */
     Route::post('/admin/address_book/import', 'Admin\AddressBookController@import');     /* 批量导入 */
 
-    Route::post('/api/admin/logout','Admin\LoginController@logout');
+    Route::post('/admin/logout','Admin\LoginController@logout');
+
+    Route::get('/admin/qiniu/token','Admin\DutyController@uploadToken');
 });
 

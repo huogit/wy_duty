@@ -59,8 +59,13 @@ class DutyController extends \App\Http\Controllers\Controller
         if (!empty($bwc))
             Cache::forever('bottom_button_color',request('bottom_word_color'));
 
-        if (!empty($siu))
-            Cache::forever('start_img_url',request('start_img_url'));
+        if (!empty($siu)) {
+            $arr = json_decode(request('start_img_url'),true);
+            $key = $arr["key"];
+
+            Cache::forever('start_img_url', config('qiniu.root_url') . '/' . $key);
+            echo Cache::get('start_img_url');
+        }
 
         return $this->response(200,'ok');
     }
@@ -357,5 +362,23 @@ class DutyController extends \App\Http\Controllers\Controller
             ->select('real_name','complements_count','leaves_count')
             ->whereBetween('class',[$start,$year])->get();
         return $this->response(200,'ok',$data);
+    }
+
+
+    /**
+     * 上传凭证
+     * @return false|string
+     */
+    public function uploadToken()
+    {
+        $url = "https://wy-api.wangyuan.info/qiniu/token";
+        $postData =  [
+            'bucket' => config('qiniu.bucket'),
+            'expires' => config('qiniu.expires'),
+        ];
+        $uploadToken = $this->http_post($url,$postData);
+        $uploadToken = json_decode($uploadToken,true);
+
+        return $this->response(200,'ok',['token'=>$uploadToken['data']['token']]);
     }
 }

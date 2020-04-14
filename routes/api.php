@@ -19,7 +19,7 @@ use Illuminate\Http\Request;
 Route::post('/login','LoginController@login');                          /* 登录 */
 Route::get('/get_openid','LoginController@get_openid');                 /* 获取openid */
 Route::get('/auth','LoginController@auth');                             /* 回调授权 */
-Route::get('/wechat_openid/{code}','LoginController@wechat_openid');           /* 微信openid */
+Route::get('/wechat_openid/{code}','LoginController@wechat_openid');    /* 微信openid */
 
 Route::group(['middleware' => 'CheckToken'], function() {
 
