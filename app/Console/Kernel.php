@@ -25,11 +25,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('command:kaoqin')
-            ->dailyAt('15:30');
-
-        $schedule->command('command:kaoqin')
-            ->dailyAt('17:00');
+        $schedule->command('command:send')->dailyAt('14:59');
+        $schedule->command('command:send')->dailyAt('16:49');
+        // $schedule->command('command:send')->dailyAt('13:32');
+        // $schedule->command('command:send')->dailyAt('13:31');
+        $schedule->command('command:send')->everyMinute();
     }
 
     /**
