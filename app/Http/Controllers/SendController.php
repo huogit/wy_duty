@@ -29,7 +29,7 @@ class  SendController
             ]
         ];
         //跳转小程序类型：developer为开发版；trial为体验版；formal为正式版；默认为正式版
-        $data['miniprogram_state'] = 'trial';
+        $data['miniprogram_state'] = 'formal';
         return self::curlPost($url,json_encode($data)) ;
     }
 
