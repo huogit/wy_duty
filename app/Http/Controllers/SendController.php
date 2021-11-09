@@ -2,42 +2,64 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Leave;
+use App\Duty;
+use App\Http\Controllers\Controller;
 
 class  SendController
 {
+ public function commandSend(){
+    $controller = new Controller();
+        // 没有签到
+    $week = $controller->nowWeek();
+    $day = $controller->nowDay();
+    $time = $controller->nowTime();
+
+    $dutys = Duty::whereWdtp(compact('week', 'day', 'time'))->doesntHave('leave')->where('sign_time', null)
+    ->select('user_id');
+    $noSgins = Leave::whereWdtp(compact('week', 'day', 'time'))->where('sign_time', null)
+    ->select('user_id')->union($dutys)->get();
+
+        // Log::info("week:{$week},day:{$day},time:{$time},有".count($dutys)."条未签到");
+    foreach ($noSgins as $noSgin) {
+        $openid = $noSgin->user->openid;
+        self::sendMessage($openid);
+    }
+}
+
     //订阅消息
-    public static function sendMessage($openid = "")
-    {
-        $url = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid='.env('WECHAT_MINI_PROGRAM_APPID'). '&secret='.env('WECHAT_MINI_PROGRAM_SECRET');
-        $res = json_decode(file_get_contents($url),true);
-        $access_token = $res['access_token'] ;
+public static function sendMessage($openid = "")
+{
+    $url = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid='.env('WECHAT_MINI_PROGRAM_APPID'). '&secret='.env('WECHAT_MINI_PROGRAM_SECRET');
+    $res = json_decode(file_get_contents($url),true);
+    $access_token = $res['access_token'] ;
 
         //请求url
-        $url = 'https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token='.$access_token ;
-        $data = [] ;
-        $data['touser'] = $openid;
+    $url = 'https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token='.$access_token ;
+    $data = [] ;
+    $data['touser'] = $openid;
         //订阅模板id
-        $data['template_id'] = 'D0MzA36f6sZfWms-gfpR5XhzU6kgTzIPvHou8ZvY1Ds' ;
+    $data['template_id'] = 'D0MzA36f6sZfWms-gfpR5XhzU6kgTzIPvHou8ZvY1Ds' ;
         //点击模板卡片后的跳转页面
-        $data['page'] = 'pages/setting/setting' ;
-        $data['data'] = [
-            "thing9"=>[
+    $data['page'] = 'pages/setting/setting' ;
+    $data['data'] = [
+        "thing9"=>[
                 'value' => '琼姐提醒你，再不去签到，就哭给你看'//签到时间要过期了@·~·@
             ],
             "time12"=>[
-                 'value' => date("Y-m-d H:i:s")
-            ]
-        ];
+               'value' => date("Y-m-d H:i:s")
+           ]
+       ];
         //跳转小程序类型：developer为开发版；trial为体验版；formal为正式版；默认为正式版
-        $data['miniprogram_state'] = 'formal';
-        return self::curlPost($url,json_encode($data)) ;
-    }
+       $data['miniprogram_state'] = 'formal';
+       return self::curlPost($url,json_encode($data)) ;
+   }
 
 
     //发送post请求
-    static function curlPost($url,$data)
-    {
-        $ch = curl_init();
+   static function curlPost($url,$data)
+   {
+    $ch = curl_init();
         $params[CURLOPT_URL] = $url;    //请求url地址
         $params[CURLOPT_HEADER] = FALSE; //是否返回响应头信息
         $params[CURLOPT_SSL_VERIFYPEER] = false;
@@ -50,6 +72,5 @@ class  SendController
         curl_close($ch);
         return $content;
     }
-
 
 }

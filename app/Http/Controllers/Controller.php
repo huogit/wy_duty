@@ -62,7 +62,7 @@ class Controller extends BaseController
     {
         // 比如当前为第一周，不应该加一周，应该加0周
         $week--;
-        $day--;
+        // $day--;
         return date('Y-m-d',strtotime(env('SCHOOL_BEGIN_DATE')." + {$week}week {$day}day"));
     }
 

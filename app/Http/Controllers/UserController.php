@@ -56,7 +56,7 @@ class UserController extends Controller
     */
     public function checkToken()
     {
-        if (!JWTAuth::parseToken()->check())
+        if (JWTAuth::parseToken()->check())
             return $this->response(200, 'token有效');
         else
             return $this->response(204,'token无效');

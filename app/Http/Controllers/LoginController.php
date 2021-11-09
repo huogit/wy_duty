@@ -74,6 +74,9 @@ class  LoginController extends Controller
             return $data;
 
         // 验证身份，生成token
+        //调用接口认证是否是 管理员
+
+        //生成自己的token？ 不知道
         $user = User::where('openid',$openid);
         if ($user->count())
             $token = JWTAuth::fromUser($user->first());

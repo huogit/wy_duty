@@ -13,8 +13,10 @@
 
 // 后台
 
+Route::get('/commandSend','SendController@commandSend');
 // 会话模块
 Route::post('/admin/login','Admin\LoginController@login');
+Route::post('/admin/index',"Admin\IndexController@index");
 Route::group(['middleware' => 'auth:admin'], function() {
     // 首页模块
     Route::get('/admin/start', 'Admin\DutyController@start');                     /* 首页 */
